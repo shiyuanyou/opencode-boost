@@ -43,6 +43,40 @@ export async function exportSession(sid: string): Promise<ExportedSession> {
   }
 }
 
+export interface RunResult {
+  sessionId: string;
+  text: string;
+}
+
+export function parseRunEventStream(raw: string): RunResult {
+  let sessionId = "";
+  const textParts: string[] = [];
+
+  for (const line of raw.split("\n")) {
+    const trimmed = line.trim();
+    if (!trimmed) continue;
+    try {
+      const event = JSON.parse(trimmed) as Record<string, unknown>;
+      if (event.type === "session" && typeof event.session === "object" && event.session !== null) {
+        const sess = event.session as Record<string, unknown>;
+        if (typeof sess.id === "string") sessionId = sess.id;
+      }
+      if (event.type === "assistant" && Array.isArray(event.content)) {
+        for (const part of event.content as Record<string, unknown>[]) {
+          if (part.type === "text" && typeof part.text === "string") {
+            textParts.push(part.text);
+          }
+        }
+      }
+    } catch {
+      // skip non-JSON lines
+    }
+  }
+
+  if (!sessionId) throw new Error("No session event found in run output");
+  return { sessionId, text: textParts.join("") };
+}
+
 export async function deleteSession(sid: string): Promise<void> {
   try {
     await execa("opencode", ["session", "delete", sid]);
