@@ -37,4 +37,13 @@ describe("resolveRef", () => {
   it("throws if ref not found", async () => {
     await expect(resolveRef("nonexistent", "/proj")).rejects.toThrow();
   });
+
+  it("only resolves session-ids from the current cwd", async () => {
+    vi.mocked(listSessions).mockResolvedValue([
+      { id: "ses_abc123", title: "Fix auth", updated: 1000, created: 900, projectId: "p1", directory: "/proj" },
+    ]);
+    await expect(resolveRef("ses_def456", "/other")).rejects.toThrow(
+      'No session found for ref "ses_def456" in /other',
+    );
+  });
 });
