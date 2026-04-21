@@ -7,6 +7,7 @@ import { checkoutCommand } from "./commands/checkout.js";
 import { renameCommand } from "./commands/rename.js";
 import { unmanageCommand } from "./commands/unmanage.js";
 import { deleteCommand } from "./commands/delete.js";
+import { graphCommand } from "./commands/graph.js";
 
 const program = new Command();
 
@@ -35,6 +36,18 @@ origin
   .action(async () => {
     try {
       await originAvailableCommand(process.cwd());
+    } catch (err) {
+      console.error(`Error: ${err instanceof Error ? err.message : String(err)}`);
+      process.exit(1);
+    }
+  });
+
+program
+  .command("graph")
+  .description("Show session fork tree")
+  .action(async () => {
+    try {
+      await graphCommand(process.cwd());
     } catch (err) {
       console.error(`Error: ${err instanceof Error ? err.message : String(err)}`);
       process.exit(1);
