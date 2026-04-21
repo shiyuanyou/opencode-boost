@@ -66,6 +66,17 @@ $ ocb checkout fix-login
 $ ocb list
 * fix-login (ses_2501c621eff)  just now
 
+# Fork a new branch from an existing session
+$ ocb checkout -b try-jwt fix-login
+⏳ Forking from fix-login (ses_2501c621eff)...
+✓ Created try-jwt (ses_3a7f9b2c1d), switched
+  Open session: opencode -s ses_3a7f9b2c1d
+
+# View session fork tree
+$ ocb graph
+* fix-login (ses_2501c621eff) just now
+  └── [6] try-jwt (ses_3a7f9b2c1d) just now
+
 # Rename
 $ ocb rename fix-login auth-v2
 ✓ Renamed: fix-login → auth-v2
@@ -92,6 +103,8 @@ $ ocb delete auth-v2
 | `ocb attach <name>` | Create an alias for the most recent session |
 | `ocb attach <name> -s <sid>` | Create an alias for a specific session ID |
 | `ocb checkout <ref>` | Switch active session (updates state.json) |
+| `ocb checkout -b <name> <ref>` | Fork from specified session into a new named session |
+| `ocb graph` | Show session fork tree (ASCII, with fork positions) |
 | `ocb rename <old> <new>` | Rename a session alias |
 | `ocb unmanage <ref>` | Remove from ocb management (session is preserved) |
 | `ocb delete <ref>` | Permanently delete a session (calls `opencode session delete`) |
@@ -106,6 +119,7 @@ $ ocb delete auth-v2
 ```
 ~/.local/share/opencode-boost/
 ├── names.json    # alias → session-id mapping (per project directory)
+├── forks.json    # fork relationships (parentSessionId + parentMessageId)
 └── state.json    # active session per project
 ```
 
@@ -125,7 +139,7 @@ Example `names.json`:
 | Phase | Scope | Status |
 |-------|-------|--------|
 | Phase 1 | View + naming commands | ✅ Done |
-| Phase 2 | Fork (`checkout -b`) + session graph (`graph`) | 🔲 |
+| Phase 2 | Fork (`checkout -b`) + session graph (`graph`) | ✅ Done |
 | Phase 3 | Compact, rebase, reflog, rollback | 🔲 |
 | Phase 4 | Cross-session knowledge injection (`inject`, `pick`) | 🔲 |
 

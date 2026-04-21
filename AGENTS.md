@@ -24,3 +24,16 @@
 - TypeScript + Node.js
 - CLI 工具（不做 TUI，后期直接拓展 GUI）
 - 通过子进程调用 opencode CLI，解析 stdout
+
+---
+
+## 进度
+
+- **Phase 1 ✅ 已完成** — 核心查看 + 命名（list, show, attach, checkout, rename, unmanage, delete）
+- **Phase 2 ✅ 已完成** — 分叉（`checkout -b`）+ 会话树（`graph`）
+- **Phase 3 🔲** — 压缩（compact, rebase, reflog, rollback）
+- **Phase 4 🔲** — 跨会话复用（inject, pick）
+
+### 已知问题
+
+- **活跃会话 export 截断**：当前正在使用的会话 export 出来的 JSON 不完整。`ocb checkout -b` 依赖 export 获取 lastMessageId，因此无法 fork 当前活跃会话。需要先切换到其他会话或等待会话空闲。

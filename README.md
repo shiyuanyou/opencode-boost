@@ -66,6 +66,17 @@ $ ocb checkout fix-login
 $ ocb list
 * fix-login (ses_2501c621eff)  just now
 
+# 从当前会话 fork 一个新分支
+$ ocb checkout -b try-jwt fix-login
+⏳ Forking from fix-login (ses_2501c621eff)...
+✓ Created try-jwt (ses_3a7f9b2c1d), switched
+  Open session: opencode -s ses_3a7f9b2c1d
+
+# 查看会话树
+$ ocb graph
+* fix-login (ses_2501c621eff) just now
+  └── [6] try-jwt (ses_3a7f9b2c1d) just now
+
 # 重命名
 $ ocb rename fix-login auth-v2
 ✓ Renamed: fix-login → auth-v2
@@ -92,6 +103,8 @@ $ ocb delete auth-v2
 | `ocb attach <name>` | 给最近的会话创建别名 |
 | `ocb attach <name> -s <sid>` | 给指定 session-id 创建别名 |
 | `ocb checkout <ref>` | 切换活跃会话（更新 state.json） |
+| `ocb checkout -b <name> <ref>` | 从指定会话 fork 出新会话并命名 |
+| `ocb graph` | 显示会话 fork 树（ASCII，含 fork 位置） |
 | `ocb rename <old> <new>` | 重命名会话别名 |
 | `ocb unmanage <ref>` | 从 ocb 管理中移除（会话保留） |
 | `ocb delete <ref>` | 彻底删除会话（调用 `opencode session delete`） |
@@ -106,6 +119,7 @@ $ ocb delete auth-v2
 ```
 ~/.local/share/opencode-boost/
 ├── names.json    # 别名 → session-id 映射（按项目目录）
+├── forks.json    # fork 关系记录（parentSessionId + parentMessageId）
 └── state.json    # 每个项目的当前活跃会话
 ```
 
@@ -125,7 +139,7 @@ $ ocb delete auth-v2
 | 阶段 | 内容 | 状态 |
 |------|------|------|
 | Phase 1 | 查看 + 命名命令 | ✅ 已完成 |
-| Phase 2 | 分叉（`checkout -b`）+ 会话树（`graph`） | 🔲 |
+| Phase 2 | 分叉（`checkout -b`）+ 会话树（`graph`） | ✅ 已完成 |
 | Phase 3 | 压缩（`compact`）、rebase、操作历史（`reflog`）、回滚（`rollback`） | 🔲 |
 | Phase 4 | 跨会话知识注入（`inject`、`pick`） | 🔲 |
 
