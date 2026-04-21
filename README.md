@@ -134,6 +134,25 @@ $ ocb delete auth-v2
 }
 ```
 
+## 测试
+
+### 单元测试
+
+```bash
+npm test
+```
+
+### E2E 测试
+
+每次开发后都应运行，验证所有命令在真实 opencode 会话上工作正常。
+
+```bash
+npm run build
+bash tests/e2e/run-e2e.sh
+```
+
+测试在 `/tmp` 下创建隔离的 git 项目和会话，不影响你的真实工作。每次运行消耗约 4 次 `opencode run` 的 token。详见 [tests/e2e/README.md](tests/e2e/README.md)。
+
 ## 路线图
 
 | 阶段 | 内容 | 状态 |

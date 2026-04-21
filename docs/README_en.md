@@ -134,6 +134,25 @@ Example `names.json`:
 }
 ```
 
+## Testing
+
+### Unit Tests
+
+```bash
+npm test
+```
+
+### E2E Tests
+
+Run after every change to verify all commands work against real opencode sessions.
+
+```bash
+npm run build
+bash tests/e2e/run-e2e.sh
+```
+
+Tests create isolated git projects and sessions under `/tmp`. No impact on your real work. Each run costs ~4 `opencode run` invocations in tokens. See [tests/e2e/README.md](../tests/e2e/README.md).
+
 ## Roadmap
 
 | Phase | Scope | Status |

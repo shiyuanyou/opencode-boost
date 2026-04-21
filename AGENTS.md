@@ -37,3 +37,28 @@
 ### 已知问题
 
 - **活跃会话 export 截断**：当前正在使用的会话 export 出来的 JSON 不完整。`ocb checkout -b` 依赖 export 获取 lastMessageId，因此无法 fork 当前活跃会话。需要先切换到其他会话或等待会话空闲。
+
+---
+
+## 测试
+
+### 单元测试
+
+```bash
+npm test
+```
+
+### E2E 测试
+
+**每次开发后必须运行**，验证所有 ocb 命令在真实 opencode 会话上工作正常。
+
+```bash
+npm run build
+bash tests/e2e/run-e2e.sh
+```
+
+- 在 `/tmp` 下创建隔离的 git 项目和会话，不影响当前工作
+- 消耗约 4 次 `opencode run` 的 token
+- 自动清理所有测试会话和临时目录
+- 测试定义：`tests/e2e/task.json`
+- 详细说明：`tests/e2e/README.md`

@@ -1,0 +1,245 @@
+{
+  "version": 1,
+  "description": "ocb E2E test specification. Standardized sessions and assertions for all contributors.",
+  "projects": [
+    {
+      "id": "project-a",
+      "description": "Main test project with 3 sessions covering naming, viewing, switching, deleting",
+      "files": ["README.md"],
+      "sessions": [
+        {
+          "id": "pa-s1",
+          "alias": "auth-feature",
+          "message": "帮我实现用户认证模块，包含登录和注册功能。测试标记: [E2E-PA-S1]",
+          "marker": "[E2E-PA-S1]"
+        },
+        {
+          "id": "pa-s2",
+          "alias": "fix-css-bug",
+          "message": "修复登录页面 CSS 布局错位的问题，按钮没有居中。测试标记: [E2E-PA-S2]",
+          "marker": "[E2E-PA-S2]"
+        },
+        {
+          "id": "pa-s3",
+          "alias": null,
+          "message": "给项目添加 README 文件，包含安装和使用说明。测试标记: [E2E-PA-S3]",
+          "marker": "[E2E-PA-S3]"
+        }
+      ]
+    },
+    {
+      "id": "project-b",
+      "description": "Isolation verification project with 1 session for cross-project isolation tests",
+      "files": ["README.md"],
+      "sessions": [
+        {
+          "id": "pb-s1",
+          "alias": "api-design",
+          "message": "设计 REST API 接口，包含用户 CRUD 操作。测试标记: [E2E-PB-S1]",
+          "marker": "[E2E-PB-S1]"
+        }
+      ]
+    }
+  ],
+  "test_sequence": [
+    {
+      "phase": 1,
+      "description": "Phase 1: View + Naming",
+      "steps": [
+        {
+          "id": "T01",
+          "name": "origin available lists all unmanaged sessions in project-a",
+          "cwd": "project-a",
+          "command": "ocb origin available",
+          "assert": ["E2E-PA-S1", "E2E-PA-S2", "E2E-PA-S3"],
+          "assert_not": ["E2E-PB"]
+        },
+        {
+          "id": "T02",
+          "name": "attach names the most recent session",
+          "cwd": "project-a",
+          "command": "ocb attach auth-feature",
+          "assert": ["Created: auth-feature"]
+        },
+        {
+          "id": "T03",
+          "name": "attach names second session by sid",
+          "cwd": "project-a",
+          "command": "ocb attach fix-css -s ${PA_S2_SID}",
+          "assert": ["Created: fix-css"]
+        },
+        {
+          "id": "T04",
+          "name": "list shows 2 managed sessions",
+          "cwd": "project-a",
+          "command": "ocb list",
+          "assert": ["auth-feature", "fix-css"],
+          "assert_not": ["E2E-PA-S3"]
+        },
+        {
+          "id": "T05",
+          "name": "origin available only shows unmanaged pa-s3",
+          "cwd": "project-a",
+          "command": "ocb origin available",
+          "assert": ["E2E-PA-S3"],
+          "assert_not": ["auth-feature", "fix-css"]
+        },
+        {
+          "id": "T06",
+          "name": "show displays message list",
+          "cwd": "project-a",
+          "command": "ocb show auth-feature",
+          "assert": ["User", "Assistant"],
+          "min_lines": 2
+        },
+        {
+          "id": "T07",
+          "name": "show -m shows specific message detail",
+          "cwd": "project-a",
+          "command": "ocb show auth-feature -m 1",
+          "assert": ["[E2E-PA-S1]"]
+        },
+        {
+          "id": "T08",
+          "name": "checkout switches active session",
+          "cwd": "project-a",
+          "command": "ocb checkout auth-feature",
+          "assert": ["Switched to auth-feature"]
+        },
+        {
+          "id": "T09",
+          "name": "list shows * marker on active session",
+          "cwd": "project-a",
+          "command": "ocb list",
+          "assert": ["* auth-feature"]
+        },
+        {
+          "id": "T10",
+          "name": "rename changes alias",
+          "cwd": "project-a",
+          "command": "ocb rename auth-feature login-module",
+          "assert": ["Renamed: auth-feature → login-module"]
+        },
+        {
+          "id": "T11",
+          "name": "list reflects new name",
+          "cwd": "project-a",
+          "command": "ocb list",
+          "assert": ["login-module", "fix-css"],
+          "assert_not": ["auth-feature"]
+        },
+        {
+          "id": "T12",
+          "name": "show works with new name",
+          "cwd": "project-a",
+          "command": "ocb show login-module -m 1",
+          "assert": ["[E2E-PA-S1]"]
+        },
+        {
+          "id": "T13",
+          "name": "show works with raw session id",
+          "cwd": "project-a",
+          "command": "ocb show ${PA_S1_SID} -m 1",
+          "assert": ["[E2E-PA-S1]"]
+        },
+        {
+          "id": "T14",
+          "name": "unmanage removes from list",
+          "cwd": "project-a",
+          "command": "ocb unmanage fix-css",
+          "assert": ["Removed fix-css"]
+        },
+        {
+          "id": "T15",
+          "name": "list no longer shows unmanaged session",
+          "cwd": "project-a",
+          "command": "ocb list",
+          "assert": ["login-module"],
+          "assert_not": ["fix-css"]
+        },
+        {
+          "id": "T16",
+          "name": "origin available shows unmanaged sessions again",
+          "cwd": "project-a",
+          "command": "ocb origin available",
+          "assert": ["E2E-PA-S2"]
+        },
+        {
+          "id": "T17",
+          "name": "cross-project isolation: project-b sees nothing managed",
+          "cwd": "project-b",
+          "command": "ocb list",
+          "assert": ["No managed sessions"]
+        },
+        {
+          "id": "T18",
+          "name": "project-b attach and list",
+          "cwd": "project-b",
+          "command": "ocb attach api-work",
+          "assert": ["Created: api-work"]
+        },
+        {
+          "id": "T19",
+          "name": "project-b list shows own session only",
+          "cwd": "project-b",
+          "command": "ocb list",
+          "assert": ["api-work"],
+          "assert_not": ["login-module", "fix-css"]
+        },
+        {
+          "id": "T20",
+          "name": "project-b show works",
+          "cwd": "project-b",
+          "command": "ocb show api-work -m 1",
+          "assert": ["[E2E-PB-S1]"]
+        },
+        {
+          "id": "T21",
+          "name": "delete -f removes session permanently",
+          "cwd": "project-a",
+          "command": "ocb delete ${PA_S3_SID} -f",
+          "assert": ["Deleted"]
+        },
+        {
+          "id": "T22",
+          "name": "deleted session no longer in origin available",
+          "cwd": "project-a",
+          "command": "ocb origin available",
+          "assert_not": ["E2E-PA-S3"]
+        },
+        {
+          "id": "T23",
+          "name": "show nonexistent ref returns error",
+          "cwd": "project-a",
+          "command": "ocb show nonexistent-xyz",
+          "exit_code": 1,
+          "assert": ["Error"]
+        }
+      ]
+    },
+    {
+      "phase": 2,
+      "description": "Phase 2: Fork + Graph (placeholder, enable when implemented)",
+      "steps": [
+        {
+          "id": "T24",
+          "name": "checkout -b forks from existing session",
+          "cwd": "project-a",
+          "command": "ocb checkout -b try-new-approach login-module",
+          "assert": ["try-new-approach"],
+          "skip": true,
+          "skip_reason": "Phase 2 not implemented"
+        },
+        {
+          "id": "T25",
+          "name": "graph shows fork tree",
+          "cwd": "project-a",
+          "command": "ocb graph",
+          "assert": ["login-module", "try-new-approach"],
+          "skip": true,
+          "skip_reason": "Phase 2 not implemented"
+        }
+      ]
+    }
+  ]
+}
