@@ -120,7 +120,7 @@ run_test() {
     echo "    Output: $(echo "$output" | head -3)"
   fi
 
-  for pattern in "${assert_patterns[@]}"; do
+  for pattern in "${assert_patterns[@]+"${assert_patterns[@]}"}"; do
     if ! echo "$output" | grep -q "$pattern"; then
       failed=true
       [ "$failed" = true ] && red "FAIL"
@@ -128,7 +128,7 @@ run_test() {
     fi
   done
 
-  for pattern in "${assert_not_patterns[@]}"; do
+  for pattern in "${assert_not_patterns[@]+"${assert_not_patterns[@]}"}"; do
     if echo "$output" | grep -q "$pattern"; then
       failed=true
       [ "$failed" = true ] && red "FAIL"

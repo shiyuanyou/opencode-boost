@@ -54,7 +54,7 @@ assert_prerequisites() {
 create_session() {
   local message="$1"
   local output
-  output=$(opencode run "$message" --format json 2>/dev/null || true)
+  output=$(opencode run "$message" --format json 2>&1)
 
   if [ -z "$output" ]; then
     echo ""
@@ -62,10 +62,15 @@ create_session() {
   fi
 
   local sid
-  sid=$(echo "$output" | grep -o '"sessionID":"ses_[^"]*"' | head -1 | cut -d'"' -f4)
+  sid=$(echo "$output" | grep '"type":"session"' | head -1 | sed -n 's/.*"id":"\(ses_[^"]*\)".*/\1/p')
 
   if [ -z "$sid" ]; then
     sid=$(echo "$output" | grep -o 'ses_[a-zA-Z0-9]*' | head -1)
+  fi
+
+  if [ -z "$sid" ]; then
+    echo "ERROR: could not extract SID from output:" >&2
+    echo "$output" | head -5 >&2
   fi
 
   echo "$sid"
