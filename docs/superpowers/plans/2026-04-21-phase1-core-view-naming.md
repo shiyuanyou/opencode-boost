@@ -1339,7 +1339,7 @@ git commit -m "feat: global error handling for all commands"
 
 ## Task 13: Phase 1 Verification
 
-- [ ] **Step 1: Run full test suite**
+- [x] **Step 1: Run full test suite**
 
 ```bash
 npm test
@@ -1347,7 +1347,7 @@ npm test
 
 Expected: All tests pass.
 
-- [ ] **Step 2: End-to-end smoke test with real opencode sessions**
+- [x] **Step 2: End-to-end smoke test with real opencode sessions**
 
 ```bash
 npm run build
@@ -1389,7 +1389,7 @@ node dist/index.js origin available
 
 All steps should produce expected output without errors.
 
-- [ ] **Step 3: Link globally for convenience**
+- [x] **Step 3: Link globally for convenience**
 
 ```bash
 npm link
@@ -1397,7 +1397,7 @@ ocb list
 ocb origin available
 ```
 
-- [ ] **Step 4: Final commit**
+- [x] **Step 4: Final commit**
 
 ```bash
 git add .
