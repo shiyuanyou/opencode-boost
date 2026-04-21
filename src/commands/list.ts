@@ -4,12 +4,11 @@ import { formatSession, relativeTime } from "../lib/format.js";
 
 export async function listCommand(cwd: string): Promise<void> {
   const [sessions, names, state] = await Promise.all([
-    listSessions(),
+    listSessions(cwd),
     readNames(),
     readState(),
   ]);
 
-  const dirSessions = sessions.filter((s) => s.directory === cwd);
   const dirNames = names[cwd] ?? {};
   const currentName = state[cwd]?.current ?? null;
 
@@ -18,7 +17,7 @@ export async function listCommand(cwd: string): Promise<void> {
   );
 
   const managedSids = new Set(Object.values(dirNames));
-  const managed = dirSessions.filter((s) => managedSids.has(s.id));
+  const managed = sessions.filter((s) => managedSids.has(s.id));
 
   if (managed.length === 0) {
     console.log("No managed sessions. Use `ocb attach <name>` to add one.");

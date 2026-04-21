@@ -6,14 +6,13 @@ export async function attachCommand(name: string, cwd: string, opts: { s?: strin
   let sid: string;
 
   if (opts.s) {
-    const sessions = await listSessions();
+    const sessions = await listSessions(cwd);
     const found = sessions.find((s) => s.id === opts.s);
-    if (!found) throw new Error(`Session ${opts.s} not found`);
+    if (!found) throw new Error(`Session ${opts.s} not found in ${cwd}`);
     sid = opts.s;
   } else {
-    const sessions = await listSessions();
+    const sessions = await listSessions(cwd);
     const dirSessions = sessions
-      .filter((s) => s.directory === cwd)
       .sort((a, b) => b.updated - a.updated);
     if (dirSessions.length === 0) throw new Error(`No sessions found in ${cwd}`);
     sid = dirSessions[0].id;

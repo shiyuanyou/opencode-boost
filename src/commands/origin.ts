@@ -3,11 +3,10 @@ import { readNames } from "../lib/store.js";
 import { shortId, relativeTime } from "../lib/format.js";
 
 export async function originAvailableCommand(cwd: string): Promise<void> {
-  const [sessions, names] = await Promise.all([listSessions(), readNames()]);
+  const [sessions, names] = await Promise.all([listSessions(cwd), readNames()]);
 
-  const dirSessions = sessions.filter((s) => s.directory === cwd);
   const managedSids = new Set(Object.values(names[cwd] ?? {}));
-  const unmanaged = dirSessions.filter((s) => !managedSids.has(s.id));
+  const unmanaged = sessions.filter((s) => !managedSids.has(s.id));
 
   if (unmanaged.length === 0) {
     console.log("All sessions are already managed.");

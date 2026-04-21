@@ -48,26 +48,21 @@ setup() {
 
   cd "$TEST_DIR/project-a"
   info "  Creating pa-s1..."
-  PA_S1_SID=$(create_session "帮我实现用户认证模块，包含登录和注册功能。测试标记: [E2E-PA-S1]")
+  PA_S1_SID=$(create_session "[E2E-PA-S1]")
   info "  pa-s1: $PA_S1_SID"
 
-  sleep 2
-
   info "  Creating pa-s2..."
-  PA_S2_SID=$(create_session "修复登录页面 CSS 布局错位的问题，按钮没有居中。测试标记: [E2E-PA-S2]")
+  PA_S2_SID=$(create_session "[E2E-PA-S2]")
   info "  pa-s2: $PA_S2_SID"
 
-  sleep 2
-
   info "  Creating pa-s3..."
-  PA_S3_SID=$(create_session "给项目添加 README 文件，包含安装和使用说明。测试标记: [E2E-PA-S3]")
+  PA_S3_SID=$(create_session "[E2E-PA-S3]")
   info "  pa-s3: $PA_S3_SID"
 
   cd "$TEST_DIR/project-b"
-  sleep 2
 
   info "  Creating pb-s1..."
-  PB_S1_SID=$(create_session "设计 REST API 接口，包含用户 CRUD 操作。测试标记: [E2E-PB-S1]")
+  PB_S1_SID=$(create_session "[E2E-PB-S1]")
   info "  pb-s1: $PB_S1_SID"
 
   cat > "$TEST_DIR/session-ids.env" <<EOF

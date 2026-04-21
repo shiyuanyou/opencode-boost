@@ -18,7 +18,7 @@ export async function graphCommand(cwd: string): Promise<void> {
     readNames(),
     readForks(),
     readState(),
-    listSessions(),
+    listSessions(cwd),
   ]);
 
   const dirNames = names[cwd] ?? {};

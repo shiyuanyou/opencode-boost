@@ -25,10 +25,12 @@ export function parseSessionList(raw: string): SessionInfo[] {
   return JSON.parse(raw) as SessionInfo[];
 }
 
-export async function listSessions(): Promise<SessionInfo[]> {
+export async function listSessions(cwd?: string): Promise<SessionInfo[]> {
   try {
     const { stdout } = await execa("opencode", ["session", "list", "--format", "json"]);
-    return parseSessionList(stdout);
+    const all = parseSessionList(stdout);
+    if (!cwd) return all;
+    return all.filter((s) => s.directory === cwd);
   } catch (err) {
     throw new Error(`Failed to list sessions: ${(err as Error).message}`);
   }
