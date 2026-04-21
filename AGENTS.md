@@ -1,64 +1,61 @@
 # AGENTS.md — opencode-boost (ocb)
 
-## 这是什么
+opencode 会话管理 CLI。通过 opencode 官方 CLI 子进程管理会话的命名、切换、分叉。设计文档：`docs/superpowers/specs/2026-04-20-ocb-new.md`。
 
-`ocb` 是 opencode 会话的外部管理工具。opencode 是一个 AI 编程助手 CLI，它的会话存在两个核心痛点：
+## 不可违反
 
-1. **上下文窗口被失败尝试填满**——无法压缩或清理无效消息
-2. **知识孤岛**——一个会话里搞明白的东西无法带到另一个会话
+**零直写 DB**：禁止直接读写 opencode 的 SQLite。所有操作通过 `opencode` CLI 子进程（`execa`）完成。
 
-`ocb` 通过 opencode 官方 CLI（export/import/run/session）来解决这两个问题。
+## 开发命令
 
-详细 idea 见 `docs/ideas.md`，当前主要设计方案见 `docs/superpowers/specs/2026-04-20-ocb-new.md`。
+```bash
+npm run build          # tsup → dist/index.js (ESM, 含 shebang)
+npm run dev            # tsup --watch
+npm test               # vitest run（单元测试，不需要 opencode）
+npm run test:watch     # vitest watch
+```
 
----
+E2E（每次改动后必跑，消耗约 4 次 `opencode run` 的 token）：
 
-## 核心约束
+```bash
+npm run build && bash tests/e2e/run-e2e.sh
+```
 
-**零直写 DB**：禁止直接读写 opencode 的 SQLite 数据库。所有操作通过 opencode CLI 完成。这是不可妥协的设计原则——opencode 没有公开数据库 schema，直写会在版本升级时静默破坏用户数据。
+没有配置 lint / typecheck 脚本。
 
----
+## 架构
 
-## 技术方向
+```
+src/
+  index.ts           # commander 入口，注册所有命令
+  commands/*.ts      # 各命令实现（list, show, attach, checkout, graph, rename, unmanage, delete, origin）
+  lib/
+    opencode.ts      # opencode CLI 调用 + 输出解析（parseExportOutput, parseSessionList, parseRunEventStream）
+    store.ts         # JSON 文件读写（names.json, state.json, forks.json）
+    paths.ts         # $XDG_DATA_HOME/opencode-boost
+    ref.ts           # 别名 → session-id 解析（先查 names，再当 raw id）
+    format.ts        # 输出格式化
+  types.ts           # SessionInfo, ExportedSession, Store 类型
+```
 
-- TypeScript + Node.js
-- CLI 工具（不做 TUI，后期直接拓展 GUI）
-- 通过子进程调用 opencode CLI，解析 stdout
+- 数据存储：`$XDG_DATA_HOME/opencode-boost/`（`names.json` / `state.json` / `forks.json`），按项目目录（cwd）隔离
+- Fork 机制：`opencode run --session <sid> --fork --format json <message>`，超时 120s
+- Session ref 解析顺序：先在当前目录的 names 中查别名，不匹配则当作原始 session ID
 
----
+## 代码约定
+
+- ESM-only（`"type": "module"`），本地导入必须加 `.js` 后缀：`import { foo } from "./bar.js"`
+- tsup 打包单一入口 `src/index.ts`，目标 Node 18
+- 测试直接从 `src/` 导入（vitest，无 path alias）
+- 无代码注释风格要求，但现有代码无注释
+
+## 已知问题
+
+- **活跃会话 export 截断**：当前正在使用的会话 export 出来 JSON 不完整。`checkout -b` 依赖 export 获取 lastMessageId，无法 fork 当前活跃会话——需先切到别的会话。
 
 ## 进度
 
-- **Phase 1 ✅ 已完成** — 核心查看 + 命名（list, show, attach, checkout, rename, unmanage, delete）
-- **Phase 2 ✅ 已完成** — 分叉（`checkout -b`）+ 会话树（`graph`）
+- **Phase 1 ✅** — 查看 + 命名（list, show, attach, checkout, rename, unmanage, delete, origin available）
+- **Phase 2 ✅** — 分叉（`checkout -b`）+ 会话树（`graph`）
 - **Phase 3 🔲** — 压缩（compact, rebase, reflog, rollback）
 - **Phase 4 🔲** — 跨会话复用（inject, pick）
-
-### 已知问题
-
-- **活跃会话 export 截断**：当前正在使用的会话 export 出来的 JSON 不完整。`ocb checkout -b` 依赖 export 获取 lastMessageId，因此无法 fork 当前活跃会话。需要先切换到其他会话或等待会话空闲。
-
----
-
-## 测试
-
-### 单元测试
-
-```bash
-npm test
-```
-
-### E2E 测试
-
-**每次开发后必须运行**，验证所有 ocb 命令在真实 opencode 会话上工作正常。
-
-```bash
-npm run build
-bash tests/e2e/run-e2e.sh
-```
-
-- 在 `/tmp` 下创建隔离的 git 项目和会话，不影响当前工作
-- 消耗约 4 次 `opencode run` 的 token
-- 自动清理所有测试会话和临时目录
-- 测试定义：`tests/e2e/task.json`
-- 详细说明：`tests/e2e/README.md`
