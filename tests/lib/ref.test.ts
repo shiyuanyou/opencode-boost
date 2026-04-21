@@ -13,6 +13,7 @@ import { listSessions } from "../../src/lib/opencode.js";
 
 describe("resolveRef", () => {
   beforeEach(() => {
+    vi.clearAllMocks();
     vi.mocked(readNames).mockResolvedValue({
       "/proj": { "fix-auth": "ses_abc123" },
     });
@@ -22,9 +23,10 @@ describe("resolveRef", () => {
     ]);
   });
 
-  it("resolves a name to session-id", async () => {
+  it("resolves a name to session-id without calling listSessions", async () => {
     const sid = await resolveRef("fix-auth", "/proj");
     expect(sid).toBe("ses_abc123");
+    expect(listSessions).not.toHaveBeenCalled();
   });
 
   it("resolves a session-id directly if it exists", async () => {
