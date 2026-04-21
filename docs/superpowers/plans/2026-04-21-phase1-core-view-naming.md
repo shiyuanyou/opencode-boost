@@ -76,21 +76,21 @@ tsup.config.ts
 - Create: `src/index.ts`
 - Create: `src/types.ts`
 
-- [ ] **Step 1: Initialize package**
+- [x] **Step 1: Initialize package**
 
 ```bash
 cd "/Users/shiyuanyou/Library/Mobile Documents/com~apple~CloudDocs/Projects/opencode-boost"
 npm init -y
 ```
 
-- [ ] **Step 2: Install dependencies**
+- [x] **Step 2: Install dependencies**
 
 ```bash
 npm install commander execa zod
 npm install -D typescript @types/node tsup vitest
 ```
 
-- [ ] **Step 3: Write `package.json`** (replace the generated one)
+- [x] **Step 3: Write `package.json`** (replace the generated one)
 
 ```json
 {
@@ -120,7 +120,7 @@ npm install -D typescript @types/node tsup vitest
 }
 ```
 
-- [ ] **Step 4: Write `tsconfig.json`**
+- [x] **Step 4: Write `tsconfig.json`**
 
 ```json
 {
@@ -137,7 +137,7 @@ npm install -D typescript @types/node tsup vitest
 }
 ```
 
-- [ ] **Step 5: Write `tsup.config.ts`**
+- [x] **Step 5: Write `tsup.config.ts`**
 
 ```typescript
 import { defineConfig } from "tsup";
@@ -151,7 +151,7 @@ export default defineConfig({
 });
 ```
 
-- [ ] **Step 6: Write `src/types.ts`**
+- [x] **Step 6: Write `src/types.ts`**
 
 ```typescript
 export interface SessionInfo {
@@ -212,7 +212,7 @@ export interface StateStore {
 }
 ```
 
-- [ ] **Step 7: Write `src/index.ts`** (minimal, commands added later)
+- [x] **Step 7: Write `src/index.ts`** (minimal, commands added later)
 
 ```typescript
 import { Command } from "commander";
@@ -227,7 +227,7 @@ program
 program.parse();
 ```
 
-- [ ] **Step 8: Build and verify**
+- [x] **Step 8: Build and verify**
 
 ```bash
 npm run build
@@ -236,7 +236,7 @@ node dist/index.js --version
 
 Expected output: `0.1.0`
 
-- [ ] **Step 9: Commit**
+- [x] **Step 9: Commit**
 
 ```bash
 git add package.json tsconfig.json tsup.config.ts src/
@@ -253,7 +253,7 @@ git commit -m "feat: project scaffold"
 - Create: `tests/lib/paths.test.ts`
 - Create: `tests/lib/store.test.ts`
 
-- [ ] **Step 1: Write failing test for paths**
+- [x] **Step 1: Write failing test for paths**
 
 ```typescript
 // tests/lib/paths.test.ts
@@ -285,7 +285,7 @@ describe("paths", () => {
 });
 ```
 
-- [ ] **Step 2: Run test — expect FAIL**
+- [x] **Step 2: Run test — expect FAIL**
 
 ```bash
 npm test -- tests/lib/paths.test.ts
@@ -293,7 +293,7 @@ npm test -- tests/lib/paths.test.ts
 
 Expected: FAIL — module not found
 
-- [ ] **Step 3: Write `src/lib/paths.ts`**
+- [x] **Step 3: Write `src/lib/paths.ts`**
 
 ```typescript
 import path from "path";
@@ -312,13 +312,13 @@ export function getConfigDir(): string {
 }
 ```
 
-- [ ] **Step 4: Run test — expect PASS**
+- [x] **Step 4: Run test — expect PASS**
 
 ```bash
 npm test -- tests/lib/paths.test.ts
 ```
 
-- [ ] **Step 5: Write failing test for store**
+- [x] **Step 5: Write failing test for store**
 
 ```typescript
 // tests/lib/store.test.ts
@@ -365,13 +365,13 @@ describe("store", () => {
 });
 ```
 
-- [ ] **Step 6: Run test — expect FAIL**
+- [x] **Step 6: Run test — expect FAIL**
 
 ```bash
 npm test -- tests/lib/store.test.ts
 ```
 
-- [ ] **Step 7: Write `src/lib/store.ts`**
+- [x] **Step 7: Write `src/lib/store.ts`**
 
 ```typescript
 import fs from "fs/promises";
@@ -418,13 +418,13 @@ export async function writeState(data: StateStore): Promise<void> {
 }
 ```
 
-- [ ] **Step 8: Run test — expect PASS**
+- [x] **Step 8: Run test — expect PASS**
 
 ```bash
 npm test -- tests/lib/store.test.ts
 ```
 
-- [ ] **Step 9: Commit**
+- [x] **Step 9: Commit**
 
 ```bash
 git add src/lib/paths.ts src/lib/store.ts tests/
@@ -439,7 +439,7 @@ git commit -m "feat: XDG paths and JSON store layer"
 - Create: `src/lib/opencode.ts`
 - Create: `tests/lib/opencode.test.ts`
 
-- [ ] **Step 1: Write failing test**
+- [x] **Step 1: Write failing test**
 
 ```typescript
 // tests/lib/opencode.test.ts
@@ -474,13 +474,13 @@ describe("parseSessionList", () => {
 });
 ```
 
-- [ ] **Step 2: Run test — expect FAIL**
+- [x] **Step 2: Run test — expect FAIL**
 
 ```bash
 npm test -- tests/lib/opencode.test.ts
 ```
 
-- [ ] **Step 3: Write `src/lib/opencode.ts`**
+- [x] **Step 3: Write `src/lib/opencode.ts`**
 
 ```typescript
 import { execa } from "execa";
@@ -514,13 +514,13 @@ export async function deleteSession(sid: string): Promise<void> {
 }
 ```
 
-- [ ] **Step 4: Run test — expect PASS**
+- [x] **Step 4: Run test — expect PASS**
 
 ```bash
 npm test -- tests/lib/opencode.test.ts
 ```
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add src/lib/opencode.ts tests/lib/opencode.test.ts
@@ -535,7 +535,7 @@ git commit -m "feat: opencode CLI subprocess wrapper"
 - Create: `src/lib/ref.ts`
 - Create: `tests/lib/ref.test.ts`
 
-- [ ] **Step 1: Write failing test**
+- [x] **Step 1: Write failing test**
 
 ```typescript
 // tests/lib/ref.test.ts
@@ -579,13 +579,13 @@ describe("resolveRef", () => {
 });
 ```
 
-- [ ] **Step 2: Run test — expect FAIL**
+- [x] **Step 2: Run test — expect FAIL**
 
 ```bash
 npm test -- tests/lib/ref.test.ts
 ```
 
-- [ ] **Step 3: Write `src/lib/ref.ts`**
+- [x] **Step 3: Write `src/lib/ref.ts`**
 
 ```typescript
 import { readNames } from "./store.js";
@@ -607,13 +607,13 @@ export async function resolveRef(ref: string, cwd: string): Promise<string> {
 }
 ```
 
-- [ ] **Step 4: Run test — expect PASS**
+- [x] **Step 4: Run test — expect PASS**
 
 ```bash
 npm test -- tests/lib/ref.test.ts
 ```
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add src/lib/ref.ts tests/lib/ref.test.ts
@@ -627,7 +627,7 @@ git commit -m "feat: ref resolution (name or session-id)"
 **Files:**
 - Create: `src/lib/format.ts`
 
-- [ ] **Step 1: Write `src/lib/format.ts`**
+- [x] **Step 1: Write `src/lib/format.ts`**
 
 ```typescript
 export function shortId(sid: string): string {
@@ -653,7 +653,7 @@ export function relativeTime(ms: number): string {
 }
 ```
 
-- [ ] **Step 2: Commit**
+- [x] **Step 2: Commit**
 
 ```bash
 git add src/lib/format.ts
@@ -668,7 +668,7 @@ git commit -m "feat: display formatting helpers"
 - Create: `src/commands/list.ts`
 - Modify: `src/index.ts`
 
-- [ ] **Step 1: Write `src/commands/list.ts`**
+- [x] **Step 1: Write `src/commands/list.ts`**
 
 ```typescript
 import { listSessions } from "../lib/opencode.js";
@@ -710,7 +710,7 @@ export async function listCommand(cwd: string): Promise<void> {
 }
 ```
 
-- [ ] **Step 2: Register command in `src/index.ts`**
+- [x] **Step 2: Register command in `src/index.ts`**
 
 ```typescript
 import { Command } from "commander";
@@ -733,7 +733,7 @@ program
 program.parse();
 ```
 
-- [ ] **Step 3: Build and manual test**
+- [x] **Step 3: Build and manual test**
 
 ```bash
 npm run build
@@ -742,7 +742,7 @@ node dist/index.js list
 
 Expected: either "No managed sessions." message or a list (if you've already run `attach`).
 
-- [ ] **Step 4: Commit**
+- [x] **Step 4: Commit**
 
 ```bash
 git add src/commands/list.ts src/index.ts
@@ -757,7 +757,7 @@ git commit -m "feat: ocb list command"
 - Create: `src/commands/origin.ts`
 - Modify: `src/index.ts`
 
-- [ ] **Step 1: Write `src/commands/origin.ts`**
+- [x] **Step 1: Write `src/commands/origin.ts`**
 
 ```typescript
 import { listSessions } from "../lib/opencode.js";
@@ -784,7 +784,7 @@ export async function originAvailableCommand(cwd: string): Promise<void> {
 }
 ```
 
-- [ ] **Step 2: Add to `src/index.ts`**
+- [x] **Step 2: Add to `src/index.ts`**
 
 ```typescript
 import { originAvailableCommand } from "./commands/origin.js";
@@ -800,7 +800,7 @@ origin
   });
 ```
 
-- [ ] **Step 3: Build and manual test**
+- [x] **Step 3: Build and manual test**
 
 ```bash
 npm run build
@@ -809,7 +809,7 @@ node dist/index.js origin available
 
 Expected: list of unmanaged sessions, including the current opencode session.
 
-- [ ] **Step 4: Commit**
+- [x] **Step 4: Commit**
 
 ```bash
 git add src/commands/origin.ts src/index.ts
@@ -824,7 +824,7 @@ git commit -m "feat: ocb origin available command"
 - Create: `src/commands/show.ts`
 - Modify: `src/index.ts`
 
-- [ ] **Step 1: Write failing test**
+- [x] **Step 1: Write failing test**
 
 ```typescript
 // tests/commands/show.test.ts
@@ -858,13 +858,13 @@ describe("buildMessageList", () => {
 });
 ```
 
-- [ ] **Step 2: Run test — expect FAIL**
+- [x] **Step 2: Run test — expect FAIL**
 
 ```bash
 npm test -- tests/commands/show.test.ts
 ```
 
-- [ ] **Step 3: Write `src/commands/show.ts`**
+- [x] **Step 3: Write `src/commands/show.ts`**
 
 ```typescript
 import { exportSession } from "../lib/opencode.js";
@@ -946,13 +946,13 @@ export async function showCommand(ref: string, cwd: string, opts: { m?: string; 
 }
 ```
 
-- [ ] **Step 4: Run test — expect PASS**
+- [x] **Step 4: Run test — expect PASS**
 
 ```bash
 npm test -- tests/commands/show.test.ts
 ```
 
-- [ ] **Step 5: Add to `src/index.ts`**
+- [x] **Step 5: Add to `src/index.ts`**
 
 ```typescript
 import { showCommand } from "./commands/show.js";
@@ -967,7 +967,7 @@ program
   });
 ```
 
-- [ ] **Step 6: Build and manual test**
+- [x] **Step 6: Build and manual test**
 
 ```bash
 npm run build
@@ -976,7 +976,7 @@ node dist/index.js show ses_2501c621effebHqPhFWqvvfguF
 
 Expected: numbered message list of the current session.
 
-- [ ] **Step 7: Commit**
+- [x] **Step 7: Commit**
 
 ```bash
 git add src/commands/show.ts tests/commands/show.test.ts src/index.ts
@@ -991,7 +991,7 @@ git commit -m "feat: ocb show command"
 - Create: `src/commands/attach.ts`
 - Modify: `src/index.ts`
 
-- [ ] **Step 1: Write `src/commands/attach.ts`**
+- [x] **Step 1: Write `src/commands/attach.ts`**
 
 ```typescript
 import { listSessions } from "../lib/opencode.js";
@@ -1026,7 +1026,7 @@ export async function attachCommand(name: string, cwd: string, opts: { s?: strin
 }
 ```
 
-- [ ] **Step 2: Add to `src/index.ts`**
+- [x] **Step 2: Add to `src/index.ts`**
 
 ```typescript
 import { attachCommand } from "./commands/attach.js";
@@ -1040,7 +1040,7 @@ program
   });
 ```
 
-- [ ] **Step 3: Build and manual test**
+- [x] **Step 3: Build and manual test**
 
 ```bash
 npm run build
@@ -1050,7 +1050,7 @@ node dist/index.js list
 
 Expected: `current-session` appears in list.
 
-- [ ] **Step 4: Commit**
+- [x] **Step 4: Commit**
 
 ```bash
 git add src/commands/attach.ts src/index.ts
@@ -1065,7 +1065,7 @@ git commit -m "feat: ocb attach command"
 - Create: `src/commands/checkout.ts`
 - Modify: `src/index.ts`
 
-- [ ] **Step 1: Write `src/commands/checkout.ts`**
+- [x] **Step 1: Write `src/commands/checkout.ts`**
 
 ```typescript
 import { resolveRef } from "../lib/ref.js";
@@ -1092,7 +1092,7 @@ export async function checkoutCommand(ref: string, cwd: string): Promise<void> {
 }
 ```
 
-- [ ] **Step 2: Add to `src/index.ts`**
+- [x] **Step 2: Add to `src/index.ts`**
 
 ```typescript
 import { checkoutCommand } from "./commands/checkout.js";
@@ -1105,7 +1105,7 @@ program
   });
 ```
 
-- [ ] **Step 3: Build and manual test**
+- [x] **Step 3: Build and manual test**
 
 ```bash
 npm run build
@@ -1115,7 +1115,7 @@ node dist/index.js list
 
 Expected: `*` marker on `current-session`.
 
-- [ ] **Step 4: Commit**
+- [x] **Step 4: Commit**
 
 ```bash
 git add src/commands/checkout.ts src/index.ts
@@ -1132,7 +1132,7 @@ git commit -m "feat: ocb checkout command"
 - Create: `src/commands/delete.ts`
 - Modify: `src/index.ts`
 
-- [ ] **Step 1: Write `src/commands/rename.ts`**
+- [x] **Step 1: Write `src/commands/rename.ts`**
 
 ```typescript
 import { readNames, writeNames, readState, writeState } from "../lib/store.js";
@@ -1159,7 +1159,7 @@ export async function renameCommand(oldName: string, newName: string, cwd: strin
 }
 ```
 
-- [ ] **Step 2: Write `src/commands/unmanage.ts`**
+- [x] **Step 2: Write `src/commands/unmanage.ts`**
 
 ```typescript
 import { resolveRef } from "../lib/ref.js";
@@ -1189,7 +1189,7 @@ export async function unmanageCommand(ref: string, cwd: string): Promise<void> {
 }
 ```
 
-- [ ] **Step 3: Write `src/commands/delete.ts`**
+- [x] **Step 3: Write `src/commands/delete.ts`**
 
 ```typescript
 import { resolveRef } from "../lib/ref.js";
@@ -1233,7 +1233,7 @@ export async function deleteCommand(ref: string, cwd: string, opts: { force?: bo
 }
 ```
 
-- [ ] **Step 4: Add all three to `src/index.ts`**
+- [x] **Step 4: Add all three to `src/index.ts`**
 
 ```typescript
 import { renameCommand } from "./commands/rename.js";
@@ -1263,7 +1263,7 @@ program
   });
 ```
 
-- [ ] **Step 5: Build and smoke test**
+- [x] **Step 5: Build and smoke test**
 
 ```bash
 npm run build
@@ -1275,7 +1275,7 @@ node dist/index.js list
 
 Expected: name changes, then session disappears from managed list.
 
-- [ ] **Step 6: Commit**
+- [x] **Step 6: Commit**
 
 ```bash
 git add src/commands/rename.ts src/commands/unmanage.ts src/commands/delete.ts src/index.ts
@@ -1289,7 +1289,7 @@ git commit -m "feat: ocb rename, unmanage, delete commands"
 **Files:**
 - Modify: `src/index.ts`
 
-- [ ] **Step 1: Add global error handler to `src/index.ts`**
+- [x] **Step 1: Add global error handler to `src/index.ts`**
 
 Wrap the `program.parse()` call:
 
@@ -1319,7 +1319,7 @@ Also, update each `.action(async (...) => { ... })` to propagate errors by wrapp
 
 Apply this try/catch pattern to all command actions in `src/index.ts`.
 
-- [ ] **Step 2: Build and verify error output**
+- [x] **Step 2: Build and verify error output**
 
 ```bash
 npm run build
@@ -1328,7 +1328,7 @@ node dist/index.js show nonexistent-ref
 
 Expected: `Error: No session found for ref "nonexistent-ref" in ...`
 
-- [ ] **Step 3: Commit**
+- [x] **Step 3: Commit**
 
 ```bash
 git add src/index.ts
