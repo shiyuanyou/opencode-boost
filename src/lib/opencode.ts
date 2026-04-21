@@ -77,6 +77,21 @@ export function parseRunEventStream(raw: string): RunResult {
   return { sessionId, text: textParts.join("") };
 }
 
+export async function forkSession(parentSid: string, message: string): Promise<RunResult> {
+  try {
+    const { stdout } = await execa("opencode", [
+      "run",
+      "--session", parentSid,
+      "--fork",
+      "--format", "json",
+      message,
+    ], { timeout: 120_000 });
+    return parseRunEventStream(stdout);
+  } catch (err) {
+    throw new Error(`Failed to fork session ${parentSid}: ${(err as Error).message}`);
+  }
+}
+
 export async function deleteSession(sid: string): Promise<void> {
   try {
     await execa("opencode", ["session", "delete", sid]);
