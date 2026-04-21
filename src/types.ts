@@ -54,3 +54,15 @@ export interface StateStore {
     current: string | null; // name of active session
   };
 }
+
+export interface ForkInfo {
+  parentSessionId: string;
+  parentMessageId: string;
+  timestamp: number;
+}
+
+export interface ForksStore {
+  [directory: string]: {
+    [childSessionId: string]: ForkInfo;
+  };
+}
