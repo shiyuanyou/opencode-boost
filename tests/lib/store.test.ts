@@ -1,5 +1,5 @@
 import { describe, it, expect, beforeEach, afterEach } from "vitest";
-import { readNames, writeNames, readState, writeState } from "../../src/lib/store.js";
+import { readNames, writeNames, readState, writeState, readForks, writeForks } from "../../src/lib/store.js";
 import fs from "fs";
 import os from "os";
 import path from "path";
@@ -37,5 +37,28 @@ describe("store", () => {
     await writeState({ "/proj": { current: "fix-auth" } });
     const state = await readState();
     expect(state["/proj"].current).toBe("fix-auth");
+  });
+});
+
+describe("forks store", () => {
+  it("returns empty forks store when file does not exist", async () => {
+    const forks = await readForks();
+    expect(forks).toEqual({});
+  });
+
+  it("writes and reads forks", async () => {
+    const data: import("../../src/types.js").ForksStore = {
+      "/proj": {
+        ses_child: {
+          parentSessionId: "ses_parent",
+          parentMessageId: "msg_003",
+          timestamp: 1000,
+        },
+      },
+    };
+    await writeForks(data);
+    const forks = await readForks();
+    expect(forks["/proj"]["ses_child"].parentSessionId).toBe("ses_parent");
+    expect(forks["/proj"]["ses_child"].parentMessageId).toBe("msg_003");
   });
 });

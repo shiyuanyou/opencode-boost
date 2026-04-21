@@ -1,7 +1,7 @@
 import fs from "fs/promises";
 import path from "path";
 import { getDataDir } from "./paths.js";
-import type { NamesStore, StateStore } from "../types.js";
+import type { NamesStore, StateStore, ForksStore } from "../types.js";
 
 async function readJson<T>(filePath: string, fallback: T): Promise<T> {
   try {
@@ -42,4 +42,16 @@ export async function readState(): Promise<StateStore> {
 
 export async function writeState(data: StateStore): Promise<void> {
   return writeJson(statePath(), data);
+}
+
+function forksPath() {
+  return path.join(getDataDir(), "forks.json");
+}
+
+export async function readForks(): Promise<ForksStore> {
+  return readJson<ForksStore>(forksPath(), {});
+}
+
+export async function writeForks(data: ForksStore): Promise<void> {
+  return writeJson(forksPath(), data);
 }
