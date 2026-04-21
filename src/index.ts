@@ -71,9 +71,10 @@ program
 program
   .command("checkout <ref>")
   .description("Switch active session")
-  .action(async (ref: string) => {
+  .option("-b <name>", "Fork from ref into new named session")
+  .action(async (ref: string, opts: { b?: string }) => {
     try {
-      await checkoutCommand(ref, process.cwd());
+      await checkoutCommand(ref, process.cwd(), opts);
     } catch (err) {
       console.error(`Error: ${err instanceof Error ? err.message : String(err)}`);
       process.exit(1);
