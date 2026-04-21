@@ -3,8 +3,8 @@ import type { SessionInfo, ExportedSession } from "../types.js";
 
 export function parseExportOutput(raw: string): ExportedSession {
   const lines = raw.split("\n");
-  // Skip lines until we find the JSON start
-  const jsonStart = lines.findIndex((l) => l.trimStart().startsWith("{"));
+  // Skip lines until we find the JSON start (JSON is at column 0)
+  const jsonStart = lines.findIndex((l) => l.startsWith("{"));
   if (jsonStart === -1) throw new Error("No JSON found in export output");
   const jsonStr = lines.slice(jsonStart).join("\n");
   return JSON.parse(jsonStr) as ExportedSession;
@@ -15,15 +15,27 @@ export function parseSessionList(raw: string): SessionInfo[] {
 }
 
 export async function listSessions(): Promise<SessionInfo[]> {
-  const { stdout } = await execa("opencode", ["session", "list", "--format", "json"]);
-  return parseSessionList(stdout);
+  try {
+    const { stdout } = await execa("opencode", ["session", "list", "--format", "json"]);
+    return parseSessionList(stdout);
+  } catch (err) {
+    throw new Error(`Failed to list sessions: ${(err as Error).message}`);
+  }
 }
 
 export async function exportSession(sid: string): Promise<ExportedSession> {
-  const { stdout } = await execa("opencode", ["export", sid]);
-  return parseExportOutput(stdout);
+  try {
+    const { stdout } = await execa("opencode", ["export", sid]);
+    return parseExportOutput(stdout);
+  } catch (err) {
+    throw new Error(`Failed to export session ${sid}: ${(err as Error).message}`);
+  }
 }
 
 export async function deleteSession(sid: string): Promise<void> {
-  await execa("opencode", ["session", "delete", sid]);
+  try {
+    await execa("opencode", ["session", "delete", sid]);
+  } catch (err) {
+    throw new Error(`Failed to delete session ${sid}: ${(err as Error).message}`);
+  }
 }
