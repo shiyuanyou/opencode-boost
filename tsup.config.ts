@@ -6,4 +6,5 @@ export default defineConfig({
   target: "node18",
   banner: { js: "#!/usr/bin/env node" },
   clean: true,
+  outExtension: () => ({ js: ".js" }),
 });
