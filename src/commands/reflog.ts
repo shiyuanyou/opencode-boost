@@ -1,6 +1,4 @@
-import { readReflog } from "../lib/store.js";
-import { readNames } from "../lib/store.js";
-import { readState } from "../lib/store.js";
+import { readReflog, readState } from "../lib/store.js";
 import { relativeTime } from "../lib/format.js";
 
 export async function reflogCommand(ref: string | undefined, cwd: string): Promise<void> {

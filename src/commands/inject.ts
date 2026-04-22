@@ -20,7 +20,6 @@ export async function injectCommand(
     const state = await readState();
     const currentName = state[cwd]?.current;
     if (!currentName) throw new Error("No current session. Specify a target ref.");
-    const { readNames } = await import("../lib/store.js");
     const names = await readNames();
     const dirNames = names[cwd] ?? {};
     targetSid = dirNames[currentName] ?? currentName;
