@@ -198,7 +198,7 @@ export function parseModelsOutput(raw: string): ModelInfo[] {
 
 export async function getCurrentSession(): Promise<string | null> {
   try {
-    const { stdout } = await execa("opencode", ["-c"], { input: "", reject: false });
+    const { stdout } = await execa("opencode", ["-c"], { input: "", reject: false, timeout: 5000 });
     const match = stdout.match(/opencode\s+-s\s+(ses_[a-zA-Z0-9]+)/);
     return match ? match[1] : null;
   } catch {
