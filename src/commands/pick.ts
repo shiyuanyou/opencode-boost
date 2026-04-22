@@ -35,8 +35,8 @@ export async function pickCommand(
 
   const injectText = `来自 ${sourceRef} 的参考信息：\n\n${content}`;
 
-  console.log(`\u23f3 Injecting ${validPicked.length} messages...`);
+  console.log(`\u23f3 Injecting ${picked.length} messages...`);
   await injectMessage(targetSid, injectText);
 
-  console.log(`\u2713 Injected ${validPicked.length} messages into ${shortId(targetSid)}`);
+  console.log(`\u2713 Injected ${picked.length} messages into ${shortId(targetSid)}`);
 }
