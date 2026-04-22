@@ -66,7 +66,7 @@ npm run test:watch     # 监听模式
 - 从 `src/` 直接 import，路径加 `.js` 后缀
 - 不需要 opencode，纯解析逻辑测试
 - 改了函数签名必须补测试——特别是 `src/lib/` 下的函数
-- 当前 49 个测试，覆盖：chain（8）、ref（4）、opencode（14）、attach（4）、graph（4）、store（6）、paths（3）、show（2）、reflog（2）、summarizer（2）
+- 当前 57 个测试，覆盖：chain（8）、ref（4）、opencode（14）、attach（4）、graph（4）、store（6）、paths（3）、show（2）、reflog（2）、summarizer（2）
 
 ---
 
