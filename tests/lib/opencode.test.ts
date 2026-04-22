@@ -1,6 +1,6 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
 
-import { parseExportOutput, parseSessionList, parseRunEventStream, listSessions } from "../../src/lib/opencode.js";
+import { parseExportOutput, parseSessionList, parseRunEventStream, listSessions, parseModelsOutput } from "../../src/lib/opencode.js";
 
 vi.mock("execa", () => ({
   execa: vi.fn(),
@@ -91,5 +91,44 @@ describe("listSessions", () => {
   it("returns empty array when no sessions match cwd", async () => {
     const result = await listSessions("/other");
     expect(result).toHaveLength(0);
+  });
+});
+
+describe("parseModelsOutput", () => {
+  it("parses models verbose output with JSON metadata", () => {
+    const raw = [
+      "opencode/big-pickle",
+      '{"name":"Big Pickle","cost":0}',
+      "zai-coding-plan/glm-5.1",
+      '{"name":"GLM-5.1","cost":0.5}',
+    ].join("\n");
+
+    const models = parseModelsOutput(raw);
+    expect(models).toHaveLength(2);
+    expect(models[0].id).toBe("opencode/big-pickle");
+    expect(models[0].providerID).toBe("opencode");
+    expect(models[0].modelID).toBe("big-pickle");
+    expect(models[0].name).toBe("Big Pickle");
+    expect(models[0].cost).toBe(0);
+    expect(models[1].name).toBe("GLM-5.1");
+    expect(models[1].cost).toBe(0.5);
+  });
+
+  it("uses modelID as name when no JSON metadata", () => {
+    const raw = "opencode/some-model\n";
+    const models = parseModelsOutput(raw);
+    expect(models).toHaveLength(1);
+    expect(models[0].name).toBe("some-model");
+  });
+
+  it("skips lines without slash", () => {
+    const raw = "not-a-model\nopencode/good-one\n";
+    const models = parseModelsOutput(raw);
+    expect(models).toHaveLength(1);
+    expect(models[0].id).toBe("opencode/good-one");
+  });
+
+  it("returns empty array for empty input", () => {
+    expect(parseModelsOutput("")).toHaveLength(0);
   });
 });

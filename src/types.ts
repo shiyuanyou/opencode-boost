@@ -66,3 +66,25 @@ export interface ForksStore {
     [childSessionId: string]: ForkInfo;
   };
 }
+
+export interface ReflogEntry {
+  name: string;
+  sessionId: string;
+  operation: "compact" | "rebase" | "rollback" | "original";
+  from: string | null;
+  timestamp: number;
+}
+
+export interface ReflogStore {
+  [directory: string]: ReflogEntry[];
+}
+
+export interface ConfigStore {
+  summarizer: {
+    method: string;
+    model: string;
+  };
+  models: {
+    [alias: string]: string;
+  };
+}

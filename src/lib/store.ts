@@ -1,7 +1,7 @@
 import fs from "fs/promises";
 import path from "path";
-import { getDataDir } from "./paths.js";
-import type { NamesStore, StateStore, ForksStore } from "../types.js";
+import { getDataDir, getConfigDir } from "./paths.js";
+import type { NamesStore, StateStore, ForksStore, ReflogStore, ConfigStore } from "../types.js";
 
 async function readJson<T>(filePath: string, fallback: T): Promise<T> {
   try {
@@ -54,4 +54,28 @@ export async function readForks(): Promise<ForksStore> {
 
 export async function writeForks(data: ForksStore): Promise<void> {
   return writeJson(forksPath(), data);
+}
+
+function reflogPath() {
+  return path.join(getDataDir(), "reflog.json");
+}
+
+export async function readReflog(): Promise<ReflogStore> {
+  return readJson<ReflogStore>(reflogPath(), {});
+}
+
+export async function writeReflog(data: ReflogStore): Promise<void> {
+  return writeJson(reflogPath(), data);
+}
+
+function configPath() {
+  return path.join(getConfigDir(), "config.json");
+}
+
+export async function readConfig(): Promise<ConfigStore | null> {
+  return readJson<ConfigStore | null>(configPath(), null);
+}
+
+export async function writeConfig(data: ConfigStore): Promise<void> {
+  return writeJson(configPath(), data);
 }
