@@ -6,6 +6,19 @@
 
 ---
 
+**目录**
+
+- [为什么需要 ocb](#为什么需要-ocb)
+- [安装](#安装)
+- [快速开始](#快速开始)
+- [命令参考](#命令参考)
+- [数据存储](#数据存储)
+- [测试](#测试)
+- [Pipeline-Driven Development](#pipeline-driven-development)
+- [项目文档](#项目文档)
+
+---
+
 `ocb` 是一个 CLI 工具，为 [opencode](https://opencode.ai) 会话提供 git 级别的管理能力。
 
 ## 为什么需要 ocb

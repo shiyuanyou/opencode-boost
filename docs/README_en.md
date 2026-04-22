@@ -6,6 +6,19 @@ English | [中文](../README.md)
 
 ---
 
+**Contents**
+
+- [Why ocb](#why-ocb)
+- [Installation](#installation)
+- [Quick Start](#quick-start)
+- [Command Reference](#command-reference)
+- [Data Storage](#data-storage)
+- [Testing](#testing)
+- [Pipeline-Driven Development](#pipeline-driven-development)
+- [Project Docs](#project-docs)
+
+---
+
 `ocb` is a CLI tool that brings git-level session management to [opencode](https://opencode.ai).
 
 ## Why ocb
