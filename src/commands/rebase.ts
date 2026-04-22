@@ -100,7 +100,10 @@ export async function rebaseCommand(
     for (const group of compactGroups) {
       const nums = group.map((g) => g.seq).join(",");
       console.log(`\u23f3 Summarizing messages ${nums}...`);
-      const summaryText = await summarizeMessages(group, opts.model);
+      const summaryText = await summarizeMessages(
+        group.map((e) => e.message),
+        opts.model
+      );
 
       for (const entry of group) {
         for (const part of entry.message.parts) {

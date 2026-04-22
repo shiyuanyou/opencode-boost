@@ -105,9 +105,9 @@ program
 program
   .command("rename <old> <new>")
   .description("Rename a session alias")
-  .action(async (old: string, newName: string) => {
+  .action(async (oldName: string, newName: string) => {
     try {
-      await renameCommand(old, newName, process.cwd());
+      await renameCommand(oldName, newName, process.cwd());
     } catch (err) {
       console.error(`Error: ${err instanceof Error ? err.message : String(err)}`);
       process.exit(1);

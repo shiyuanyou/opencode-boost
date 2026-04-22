@@ -26,12 +26,12 @@ export async function pickCommand(
   const nums = opts.m.split(",").map((n) => parseInt(n.trim(), 10));
   if (nums.some(isNaN)) throw new Error("Invalid message numbers. Use comma-separated list (e.g. 3,5,7)");
 
-  const picked = nums.map((n) => messages.find((m) => m.seq === n));
-  const missing = nums.filter((n, i) => !picked[i]);
+  const picked = nums
+    .map((n) => messages.find((m) => m.seq === n))
+    .filter((m): m is typeof messages[number] => m !== undefined);
+  const missing = nums.filter((n) => !messages.find((m) => m.seq === n));
   if (missing.length > 0) throw new Error(`Messages not found: ${missing.join(", ")}`);
-
-  const validPicked = picked.filter(Boolean);
-  const content = extractMessageTexts(validPicked!);
+  const content = extractMessageTexts(picked);
 
   const injectText = `来自 ${sourceRef} 的参考信息：\n\n${content}`;
 
