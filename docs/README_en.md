@@ -1,238 +1,257 @@
 # opencode-boost
 
-> opencode session manager — view, compress, fork, and reuse your AI coding sessions
->
-> opencode 会话管理器 — 查看、压缩、分叉、复用你的 AI 编程会话
+> Git for AI coding sessions — view, compress, fork, and reuse your opencode sessions
 
 English | [中文](../README.md)
 
 ---
 
-`ocb` is a CLI tool that manages [opencode](https://opencode.ai) sessions externally. It solves two core pain points:
+`ocb` is a CLI tool that brings git-level session management to [opencode](https://opencode.ai).
+
+## Why ocb
+
+AI coding assistants have two structural problems:
 
 1. **Context window bloat** — failed attempts and dead ends fill up the context, with no way to compress or clean them
 2. **Knowledge silos** — insights from one session can't be carried to another
 
-Core principle: **Zero direct database access**. All operations go through the official opencode CLI. Your data is safe across opencode upgrades.
+`ocb` solves this with three core operations:
+
+```
+compact  →  compress messages, reclaim context space (like git rebase -i)
+fork     →  branch off from any session for new explorations (like git branch)
+inject   →  transfer knowledge across sessions (like git cherry-pick)
+```
+
+Core principle: **Zero direct database access**. All operations go through the official opencode CLI.
 
 ## Installation
 
 ```bash
 git clone https://github.com/shiyuanyou/opencode-boost.git
-cd opencode-boost
-npm install
-npm link
+cd opencode-boost && npm install && npm link
 ```
 
 Requires [Node.js](https://nodejs.org/) >= 18 and [opencode](https://opencode.ai) >= 1.14.
 
-## Testing
-
-Unit tests (49 tests, instant):
-
-```bash
-npm test
-```
-
-E2E tests (34 tests, requires opencode logged in, costs tokens):
-
-```bash
-npm run build && bash tests/e2e/run-e2e.sh
-```
-
-Tests create isolated git projects and sessions under `/tmp`. No impact on your real work. Each run costs ~7 `opencode run` invocations in tokens.
-
 ## Quick Start
 
 ```bash
-# See unmanaged sessions in current directory
-$ ocb origin available
-  ses_2501c621eff  just now  "Fix login bug"
+$ ocb origin available                     # See unmanaged sessions
+$ ocb attach fix-login                     # Name the most recent session
+$ ocb list                                 # List managed sessions
+$ ocb show fix-login                       # View message list
+$ ocb show fix-login -m 2                  # View full content of message 2
+$ ocb checkout fix-login                   # Switch active session
 
-# Name the most recent session
-$ ocb attach fix-login
-✓ Created: fix-login → ses_2501c621eff
+$ ocb checkout -b try-jwt fix-login        # Fork from fix-login
+$ ocb graph                                # View session tree
 
-# List managed sessions
-$ ocb list
-  fix-login (ses_2501c621eff)  just now
-
-# View session messages
-$ ocb show fix-login
-[  1]  [User     ]  "Fix the login bug"
-[  2]  [Assistant]  I'll examine the login-related code... (3 tool calls)
-[  3]  [User     ]  "Try the JWT approach"
-[  4]  [Assistant]  Modified 3 files... (2 tool calls)
-[  5]  [User     ]  "Now add tests"
-[  6]  [Assistant]  Tests added... (4 tool calls)
-
-# View full content of a specific message
-$ ocb show fix-login -m 2
-[2] [assistant]
-I'll examine the login-related code. Let me first check the current auth module structure.
-
-# Switch active session
-$ ocb checkout fix-login
-✓ Switched to fix-login (ses_2501c621eff)
-  Open session: opencode -s ses_2501c621eff
-
-# Fork a new branch from an existing session
-$ ocb checkout -b try-jwt fix-login
-⏳ Forking from fix-login (ses_2501c621eff)...
-✓ Created try-jwt (ses_3a7f9b2c1d), switched
-  Open session: opencode -s ses_3a7f9b2c1d
-
-# View session fork tree
-$ ocb graph
-* fix-login (ses_2501c621eff) just now
-  └── [6] try-jwt (ses_3a7f9b2c1d) just now
-
-# Compact messages (manual summary)
 $ ocb compact fix-login -m 1-4 --manual "Tried session approach, switched to JWT"
-⏳ Forking fix-login (ses_2501c621eff) -> new session...
-✓ fix-login updated: ses_2501c621eff -> ses_ocb_xxx (compressed)
-  Messages 1-4 compressed to 1 summary
+$ ocb reflog fix-login                     # View operation history
+$ ocb rollback fix-login -f                # Roll back to previous version
 
-# Compact messages (LLM auto-summary)
-$ ocb compact fix-login -m 1-4 --model minimax-cn-coding-plan/MiniMax-M2.7
+$ ocb inject fix-login try-jwt             # Inject knowledge across sessions
+$ ocb pick fix-login -m 2,4                # Pick specific messages
 
-# View operation history
-$ ocb reflog fix-login-c1
-fix-login-c1 operation history:
-  [2] ses_ocb_xxx  compact  just now  from ses_2501c621eff
-  [1] ses_2501c621  (original)  just now
-
-# Rollback to a previous version
-$ ocb rollback fix-login-c1 -f
-✓ fix-login-c1 rolled back to ses_2501c621eff
-
-# Interactive rebase (choose keep/compact/drop in editor)
-$ ocb rebase fix-login
-
-# Inject knowledge across sessions
-$ ocb inject fix-login try-jwt
-⏳ Exporting source session...
-⏳ Extracting key knowledge...
-⏳ Injecting into target session...
-✓ Injected fix-login knowledge into ses_3a7f9b2c1d
-
-# Pick specific messages into current session
-$ ocb pick fix-login -m 2,4
-
-# Rename
-$ ocb rename fix-login auth-v2
-✓ Renamed: fix-login → auth-v2
-
-# Remove from management (session is preserved)
-$ ocb unmanage auth-v2
-✓ Removed auth-v2 from management (session still exists)
-
-# Permanently delete a session (requires confirmation)
-$ ocb delete auth-v2
-⚠ Delete session ses_2501c621eff? This cannot be undone. [y/N] y
-✓ Deleted ses_2501c621eff
-
-# View / set summarizer model
-$ ocb model
-$ ocb model --list
-$ ocb model fast minimax-cn-coding-plan/MiniMax-M2.7
+$ ocb model fast minimax-cn-coding-plan/MiniMax-M2.7  # Configure summarizer model
 ```
 
 ## Command Reference
 
-### Session View & Management
+### View
 
 | Command | Description |
 |---------|-------------|
-| `ocb list` | List managed sessions for current directory; `*` marks the active session |
-| `ocb origin available` | List unmanaged sessions in current directory |
-| `ocb show <ref>` | Show session message list with sequence numbers, roles, and summaries |
-| `ocb show <ref> -m 1,3` | Show full content of specific messages (comma-separated) |
-| `ocb show <ref> --json` | Output message list as JSON |
-| `ocb attach <name>` | Create an alias for the most recent session |
-| `ocb attach <name> -s <sid>` | Create an alias for a specific session ID |
-| `ocb checkout <ref>` | Switch active session (updates state.json) |
-| `ocb rename <old> <new>` | Rename a session alias |
-| `ocb unmanage <ref>` | Remove from ocb management (session is preserved) |
-| `ocb delete <ref>` | Permanently delete a session (calls `opencode session delete`) |
-| `ocb delete <ref> -f` | Skip confirmation prompt |
+| `ocb list` | List managed sessions; `*` marks active |
+| `ocb origin available` | List unmanaged sessions |
+| `ocb show <ref>` | View message list |
+| `ocb show <ref> -m 1,3` | View full content of specific messages |
+| `ocb show <ref> --json` | Output as JSON |
+| `ocb graph` | Show session fork tree |
 
-### Forking & Session Tree
+### Manage
 
 | Command | Description |
 |---------|-------------|
-| `ocb checkout -b <name> <ref>` | Fork from specified session into a new named session |
-| `ocb checkout -b <name> <ref> --model <m>` | Fork using specified model |
-| `ocb graph` | Show session fork tree (ASCII, with fork positions) |
+| `ocb attach <name>` | Create alias for most recent session |
+| `ocb attach <name> -s <sid>` | Create alias for specific session |
+| `ocb checkout <ref>` | Switch active session |
+| `ocb rename <old> <new>` | Rename alias |
+| `ocb unmanage <ref>` | Remove from management (session preserved) |
+| `ocb delete <ref>` | Delete session |
 
-### Compaction & History
+### Fork
 
 | Command | Description |
 |---------|-------------|
-| `ocb compact <ref> -m <from>-<to>` | Compress message range into one summary |
-| `ocb compact <ref> -m <range> --manual 'summary'` | Provide summary manually (no token cost) |
+| `ocb checkout -b <name> <ref>` | Fork into new named session |
+| `ocb checkout -b <name> <ref> --model <m>` | Fork with specified model |
+
+### Compact
+
+| Command | Description |
+|---------|-------------|
+| `ocb compact <ref> -m <from>-<to>` | Compress message range into summary |
+| `ocb compact <ref> -m <range> --manual 'summary'` | Manual summary (no token cost) |
 | `ocb compact <ref> -m <range> --model <m>` | Use specified model for summary |
-| `ocb rebase <ref>` | Interactive rebase (choose keep/compact/drop in editor) |
-| `ocb reflog [ref]` | View operation history (current session if no ref) |
-| `ocb rollback <name>` | Roll back to a historical version |
-| `ocb rollback <name> -f` | Skip confirmation prompt |
+| `ocb rebase <ref>` | Interactive rebase |
 
-### Cross-session Reuse
+### History
 
 | Command | Description |
 |---------|-------------|
-| `ocb inject <source> [target]` | Extract knowledge from source and inject into target (default: current) |
+| `ocb reflog [ref]` | View operation history |
+| `ocb rollback <name>` | Roll back to historical version |
+
+### Cross-session
+
+| Command | Description |
+|---------|-------------|
+| `ocb inject <source> [target]` | Extract and inject knowledge |
 | `ocb inject <source> [target] --raw` | Skip summarization, inject raw text |
-| `ocb pick <ref> -m 1,3,5` | Pick specific messages from source into current session |
+| `ocb pick <ref> -m 1,3,5` | Pick specific messages |
 
-### Configuration
+### Config
 
 | Command | Description |
 |---------|-------------|
-| `ocb model` | View current summarizer model config |
+| `ocb model` | View summarizer model config |
 | `ocb model <alias> <provider/model>` | Set model alias |
-| `ocb model --list` | List all available models |
+| `ocb model --list` | List available models |
 
-`<ref>` can be either an alias (e.g. `fix-login`) or a raw session ID (e.g. `ses_2501c621eff`).
+`<ref>` can be an alias (`fix-login`) or raw session ID (`ses_2501c621eff`).
 
 ## Data Storage
 
-`ocb` stores its data under `$XDG_DATA_HOME/opencode-boost/`:
-
 ```
 ~/.local/share/opencode-boost/
-├── names.json    # alias → session-id mapping (per project directory)
-├── forks.json    # fork relationships (parentSessionId + parentMessageId)
+├── names.json    # alias → session-id (isolated per project directory)
+├── forks.json    # fork relationships (parent + fork position)
 ├── state.json    # active session per project
-└── reflog.json   # operation history (compact/rebase/rollback records)
-```
+└── reflog.json   # operation history (enables rollback)
 
-Config under `$XDG_CONFIG_HOME/opencode-boost/`:
-
-```
 ~/.config/opencode-boost/
-└── config.json   # model aliases, summarizer model config
+└── config.json   # model aliases, summarizer config
 ```
 
-Example `names.json`:
+## Testing
 
-```json
-{
-  "/Users/you/projects/my-app": {
-    "fix-login": "ses_2501c621eff",
-    "add-tests": "ses_3a7f9b2c1d"
-  }
-}
+```bash
+npm test                                    # 57 unit tests (instant)
+npm run build && bash tests/e2e/run-e2e.sh  # 34 E2E tests (costs tokens)
 ```
 
-## Roadmap
+## Pipeline-Driven Development
 
-| Phase | Scope | Status |
-|-------|-------|--------|
-| Phase 1 | View + naming commands | ✅ Done |
-| Phase 2 | Fork (`checkout -b`) + session graph (`graph`) | ✅ Done |
-| Phase 3 | Compact, rebase, reflog, rollback | ✅ Done |
-| Phase 4 | Cross-session knowledge injection (`inject`, `pick`) | 🔧 Implemented, pending E2E |
+ocb was built using an **AI-driven pipeline development process**. This pipeline is abstracted from the ocb project and reusable for any AI-assisted software project.
+
+### Pipeline Overview
+
+```
+Spec → Plan → Implement → Test → Review → Ship
+  │       │       │         │       │       │
+  │       │       │         │       │       └→ git tag + push
+  │       │       │         │       └→ requesting-code-review skill
+  │       │       │         └→ verification-before-completion skill
+  │       │       └→ subagent-driven-development (parallel agents)
+  │       └→ writing-plans skill (checkbox-based executable plans)
+  └→ Design doc (docs/superpowers/specs/)
+```
+
+### Six Stages
+
+#### 1. Spec — Write the design document
+
+Output: `docs/superpowers/specs/YYYY-MM-DD-<name>.md`
+
+The design doc defines the problem, design principles, data model, command interface, and implementation priority. This is the pipeline input — AI agents generate executable plans from it.
+
+ocb's design doc: `docs/superpowers/specs/2026-04-20-ocb-new.md` (941 lines, covering complete command design, parentID chain repair algorithm, LLM summarization strategy).
+
+#### 2. Plan — Generate executable plans
+
+The `writing-plans` skill decomposes the design doc into checkbox-based task lists. Each task includes: files to create/modify, code snippets, and verification commands.
+
+Output: `docs/superpowers/plans/YYYY-MM-DD-<phase>.md`
+
+Key design decisions:
+- **Independent tasks** — each task can be executed by a separate agent in parallel, no shared state
+- **Embedded verification** — each task ends with `npm run build && npm test`
+- **Incremental commits** — commit after each task
+
+#### 3. Implement — Parallel agent execution
+
+The `subagent-driven-development` skill dispatches independent tasks to parallel sub-agents. Each agent:
+- Reads its task description from the plan
+- Creates/modifies files
+- Runs `npm run build && npm test` to verify
+- Returns results (PASS/FAIL + error details)
+
+The main agent only handles dispatching and status tracking.
+
+#### 4. Test — Three-layer verification
+
+```
+Unit tests (vitest) → Type check (tsc --noEmit) → E2E (real opencode sessions)
+```
+
+- **Unit tests**: 57 tests, instant, covers parsing and store operations
+- **Type check**: `tsc --noEmit`, zero errors
+- **E2E**: 34 tests, creates isolated git projects and real sessions under `/tmp`
+
+#### 5. Review — Automated code review
+
+The `requesting-code-review` skill triggers after each Phase. Review output is a new plan file (e.g., `techdebt-review-fixes.md`) that feeds back into the pipeline.
+
+This loop catches: type errors, duplicated code, test coverage gaps, stale docs.
+
+#### 6. Ship — Incremental delivery
+
+```
+Write code → build + unit test → commit + tag → E2E → push
+```
+
+Each commit maps to a verifiable change. Tags mark releases. E2E runs before push.
+
+### Results
+
+ocb was built across **4 phases** with this pipeline:
+
+| Phase | Scope | Unit tests | E2E | Time |
+|-------|-------|-----------|-----|------|
+| 1 | View + naming | 22 | 22 | 1 day |
+| 2 | Fork + session tree | 4 | 3 | 0.5 day |
+| 3 | Compact + history | 27 | 9 | 1.5 days |
+| 4 | Cross-session reuse | 4 | 0 (pending) | 0.5 day |
+
+Total: 57 unit tests + 34 E2E tests, all passing.
+
+### Reuse this pipeline
+
+To use this pipeline in your project, you need:
+
+1. **`AGENTS.md`** — project-level agent instructions (build/test/architecture/conventions), auto-loaded by every new agent session
+2. **`docs/superpowers/specs/`** — design documents, input for AI-generated plans
+3. **`docs/superpowers/plans/`** — executable plans with checkbox-based task lists
+4. **`docs/dev-workflow.md`** — dev loop, known issues, E2E rules
+
+Required skills: `writing-plans`, `subagent-driven-development`, `verification-before-completion`, `requesting-code-review`.
+
+## Project Docs
+
+```
+docs/
+├── README_en.md                          # This file
+├── dev-workflow.md                       # Dev/test workflow (agent-facing)
+├── superpowers/
+│   ├── specs/                            # Design documents
+│   │   └── 2026-04-20-ocb-new.md         # Complete ocb design
+│   └── plans/                            # Executed plans (archive)
+│       ├── 2026-04-21-phase1-core-view-naming.md
+│       ├── 2026-04-21-phase2-fork-graph.md
+│       └── 2026-04-22-techdebt-review-fixes.md
+```
 
 ## License
 
