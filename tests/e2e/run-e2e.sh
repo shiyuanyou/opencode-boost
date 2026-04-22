@@ -287,8 +287,8 @@ run_phase3() {
     "ocb compact login-module -m 1-1 --manual 'Test summary' --model minimax-cn-coding-plan/MiniMax-M2.7" 0 \
     --assert "compressed"
 
-  run_test T28 "reflog shows compact entry after compact" project-a \
-    "ocb reflog" 0 \
+  run_test T28 "reflog shows compact entry for new name" project-a \
+    "ocb reflog login-module-c1" 0 \
     --assert "compact"
 
   run_test T29 "compact creates new named session with -c suffix" project-a \

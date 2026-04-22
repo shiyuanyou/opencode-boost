@@ -107,13 +107,23 @@ export async function compactCommand(
     }
 
     reflog[cwd] = reflog[cwd] ?? [];
-    reflog[cwd].push({
-      name: newName ?? name,
-      sessionId: newSid,
-      operation: "compact",
-      from: sid,
-      timestamp: Date.now(),
-    });
+    const reflogName = newName ?? name;
+    reflog[cwd].push(
+      {
+        name,
+        sessionId: sid,
+        operation: "original" as const,
+        from: null,
+        timestamp: Date.now() - 1,
+      },
+      {
+        name: reflogName,
+        sessionId: newSid,
+        operation: "compact",
+        from: sid,
+        timestamp: Date.now(),
+      }
+    );
     await writeReflog(reflog);
 
     console.log(`\u2713 ${name} updated: ${shortId(sid)} -> ${shortId(newSid)} (compressed)`);
