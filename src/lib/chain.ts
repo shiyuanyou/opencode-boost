@@ -57,6 +57,9 @@ export function repairChain(
         sessionID: sessionId,
         parentID: resolvedParent,
         role: "user",
+        agent: "build",
+        model: { providerID: "opencode-boost", modelID: "compact-summary" },
+        summary: { diffs: [] },
         time: {
           created: compactGroup[0].message.info.time.created,
           completed: compactGroup[compactGroup.length - 1].message.info.time.created + 1,
