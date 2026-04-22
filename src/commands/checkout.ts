@@ -1,6 +1,7 @@
 import { resolveRef } from "../lib/ref.js";
 import { readState, writeState, readNames, writeNames, readForks, writeForks } from "../lib/store.js";
-import { exportSession, forkSession } from "../lib/opencode.js";
+import { forkSession } from "../lib/opencode.js";
+import { exportWithRetry } from "../lib/retry.js";
 import { shortId } from "../lib/format.js";
 import { buildMessageList } from "./show.js";
 import type { ForkInfo } from "../types.js";
@@ -58,21 +59,7 @@ async function checkoutFork(name: string, parentRef: string, cwd: string, model?
   const parentLabel = Object.entries(dirNames).find(([, s]) => s === parentSid)?.[0] ?? shortId(parentSid);
   console.log(`\u23f3 Forking from ${parentLabel} (${shortId(parentSid)})...`);
 
-  let parentExport;
-  for (let attempt = 0; attempt < 3; attempt++) {
-    try {
-      parentExport = await exportSession(parentSid);
-      break;
-    } catch (err) {
-      if (attempt < 2 && (err as Error).message.includes("truncated")) {
-        console.log(`  Session still active, waiting... (attempt ${attempt + 1}/3)`);
-        await new Promise((r) => setTimeout(r, 5000));
-        continue;
-      }
-      throw err;
-    }
-  }
-  if (!parentExport) throw new Error("Failed to export parent session after retries");
+  const parentExport = await exportWithRetry(parentSid);
 
   const parentMessages = buildMessageList(parentExport.messages);
   const lastMsgId = parentMessages.length > 0 ? parentMessages[parentMessages.length - 1].info.id : "";
