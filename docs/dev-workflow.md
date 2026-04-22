@@ -31,6 +31,27 @@ git push && git push --tags
 
 **顺序很重要**：单元测试 → commit → E2E → push。不要先 push 再测。
 
+### 自测委托 subagent
+
+主对话保持干净，自测和 E2E 交给 subagent 执行。主 agent 只发一个 Task 调用，subagent 返回浓缩结果。
+
+**Prompt 模板**（复制给 subagent）：
+
+```
+项目根目录: /path/to/opencode-boost
+依次执行：
+1. npm run build
+2. npm test
+3. bash tests/e2e/run-e2e.sh（timeout 600s，消耗 token）
+
+每步报告 PASS/FAIL + 错误详情。
+返回格式：
+BUILD: PASS/FAIL
+UNIT: PASS/FAIL (N tests)
+E2E: PASS/FAIL (N/M passed)
+FAILURES: [test ID + 错误摘要，或 "none"]
+```
+
 ---
 
 ## 单元测试
