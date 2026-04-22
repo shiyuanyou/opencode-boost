@@ -110,7 +110,7 @@ export async function compactCommand(
     const reflogName = newName ?? name;
     reflog[cwd].push(
       {
-        name,
+        name: reflogName,
         sessionId: sid,
         operation: "original" as const,
         from: null,
