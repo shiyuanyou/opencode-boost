@@ -1,6 +1,6 @@
 # ocb 开发测试流程
 
-面向 Phase 3/4 开发的操作手册。所有命令从项目根目录执行。
+面向所有 Phase 开发的操作手册。所有命令从项目根目录执行。
 
 ---
 
@@ -20,9 +20,9 @@ npm run build && npm test
 
 # 2. 确认通过后提交
 git add -A && git commit -m "<type>: <描述>"
-git tag v0.1.x  # patch 递增
+git tag v0.x.y
 
-# 3. 跑 E2E（消耗约 4 次 opencode run 的 token）
+# 3. 跑 E2E（消耗约 7 次 opencode run 的 token）
 npm run build && bash tests/e2e/run-e2e.sh
 
 # 4. E2E 通过后推送
@@ -52,6 +52,8 @@ E2E: PASS/FAIL (N/M passed)
 FAILURES: [test ID + 错误摘要，或 "none"]
 ```
 
+也可分两步：先 build + unit（秒级），通过后再跑 E2E（分钟级）。
+
 ---
 
 ## 单元测试
@@ -64,6 +66,7 @@ npm run test:watch     # 监听模式
 - 从 `src/` 直接 import，路径加 `.js` 后缀
 - 不需要 opencode，纯解析逻辑测试
 - 改了函数签名必须补测试——特别是 `src/lib/` 下的函数
+- 当前 49 个测试，覆盖：chain（8）、ref（4）、opencode（14）、attach（4）、graph（4）、store（6）、paths（3）、show（2）、reflog（2）、summarizer（2）
 
 ---
 
@@ -76,6 +79,7 @@ npm run build && bash tests/e2e/run-e2e.sh
 - 在 `/tmp` 下创建隔离的 git 项目和 session，测试完自动清理
 - 前置条件：opencode 已安装且已登录（需要 API key）
 - 脚本：`tests/e2e/run-e2e.sh`，辅助函数：`tests/e2e/lib.sh`
+- 当前 34 个测试（Phase 1: 22 + Phase 2: 3 + Phase 3: 9）
 
 ### 写新 E2E 用例的规则
 
@@ -95,6 +99,10 @@ npm run build && bash tests/e2e/run-e2e.sh
 
 4. **空数组用安全语法**——`set -euo pipefail` 下 `${arr[@]}` 在空时会报错，用 `${arr[@]+"${arr[@]}"}`
 
+5. **compact/reflog 测试用显式名字查询**——`ocb reflog <name>` 而非无参 `ocb reflog`（无参依赖 state.current，可能不是预期值）
+
+6. **rollback 默认回退一步**——不传 step 参数时 `ocb rollback <name> -f` 回到 reflog 中的前一步
+
 ### E2E 用的辅助函数（lib.sh）
 
 ```bash
@@ -102,19 +110,58 @@ create_session "消息内容"     # 调 opencode run，返回 session ID
 run_test ID "描述" cwd cmd exit_code --assert "模式" --assert-not "模式" --min-lines N
 ```
 
+### E2E 测试清单
+
+| ID | 测试项 | Phase |
+|----|--------|-------|
+| T01 | `origin available` 列出所有未管理会话 | 1 |
+| T02 | `attach` 命名最近的会话 | 1 |
+| T03 | `attach -s` 命名指定会话 | 1 |
+| T04 | `list` 显示已管理会话 | 1 |
+| T05 | `origin available` 过滤已管理会话 | 1 |
+| T06 | `show` 显示消息列表 | 1 |
+| T07 | `show -m` 显示指定消息详情 | 1 |
+| T08 | `checkout` 切换活跃会话 | 1 |
+| T09 | `list` 显示 `*` 活跃标记 | 1 |
+| T10 | `rename` 重命名别名 | 1 |
+| T11 | `list` 反映新名称 | 1 |
+| T12 | `show` 用新名称访问 | 1 |
+| T13 | `show` 用原始 session-id 访问 | 1 |
+| T14 | `unmanage` 移除管理 | 1 |
+| T15 | `list` 不再显示已移除会话 | 1 |
+| T16 | `origin available` 显示已移除的会话 | 1 |
+| T17 | 跨项目隔离：project-b 看不到 project-a | 1 |
+| T17b | project-b 独立 attach | 1 |
+| T18 | project-b 独立 list | 1 |
+| T19 | project-b 独立 show | 1 |
+| T20 | `delete -f` 彻底删除会话 | 1 |
+| T21 | 删除后不再出现 | 1 |
+| T22 | 不存在的 ref 返回错误 | 1 |
+| T23 | `checkout -b` 从命名会话 fork | 2 |
+| T24 | fork 后出现在 list | 2 |
+| T25 | `graph` 显示 fork 树 | 2 |
+| T26 | `reflog` 无条目时提示 | 3 |
+| T27 | `compact --manual` 压缩消息 | 3 |
+| T28 | `reflog` 显示 compact 条目 | 3 |
+| T29 | compact 创建 `-c1` 后缀新名 | 3 |
+| T30 | `rollback` 回退到上一版本 | 3 |
+| T31 | `reflog` 显示 rollback 条目 | 3 |
+| T32 | `model` 显示无配置 | 3 |
+| T33 | `model --list` 列出可用模型 | 3 |
+
 ---
 
 ## opencode CLI 的已知坑
 
-| 坑 | 表现 | 影响 |
+| 坑 | 表现 | 影响 / 解决方案 |
 |---|---|---|
 | 非项目目录返回全量 session | 在非 git 目录 `session list --format json` 返回所有 `projectId: "global"` 的 session | ocb 已在 `listSessions(cwd)` 源头过滤，不影响 |
-| 活跃会话 export 截断 | 当前正在使用的会话 `opencode export` 返回不完整 JSON | `show`、`checkout -b` 对活跃会话可能失败；等 session idle 后恢复 |
+| 活跃会话 export 截断 | 当前正在使用的会话 `opencode export` 返回不完整 JSON | `show`、`checkout -b`、`compact` 对活跃会话可能失败；已加 3 次重试 + 5s 退避 |
 | session title 不是消息内容 | title 是 `New session - <ISO timestamp>` | 断言用 short ID，不要断言 title |
 | NDJSON 中 SID 的字段路径 | v1.14.18 使用 `{"type":"step_start","sessionID":"ses_..."}`，不是旧的 `{"type":"session","session":{"id":"ses_..."}}` | bash 提取用 `grep -o 'ses_[a-zA-Z0-9]*'` 兜底；TS 解析两格式都支持 |
 | macOS 无 `timeout` 命令 | `create_session` 不能用 `timeout` 包裹 | 不加 timeout，依赖 opencode 自身结束 |
 | **execa 必须加 `input: ""`** | opencode 在空 stdin pipe 上阻塞等待输入，导致子进程永不退出 | 所有 `execa("opencode", [...])` 必须带 `{ input: "" }` |
-| `opencode import` 校验严格 | import 要求 id/slug/directory/title/version/time 字段存在 | `rebuildExportJson` 生成新 `ses_ocb_` ID，保留其他字段 |
+| `opencode import` 校验严格 | import 要求 id/slug/directory/title/version/time 存在，且每条消息需要 `agent`(string) + `model`(object) + `sessionID`(string) | `rebuildExportJson` 生成新 `ses_ocb_` ID 并更新所有 sessionID；`repairChain` 摘要消息补上 agent/model 字段 |
 | import 输出非 JSON | `opencode import` 输出 `Imported session: ses_xxx` 纯文本 | `importSession` 用正则匹配，不走 JSON 解析 |
 
 ---
@@ -166,9 +213,11 @@ src/
 
 ---
 
-## 剩余工作
+## 未覆盖的功能
 
-Phase 3 — compact E2E 偶发失败（import 环节需调试），rebase 需交互式编辑器无法在 E2E 中测
-Phase 4 — inject/pick 命令已实现，未写 E2E（需要 LLM token 消耗）
+- **rebase** — 命令已实现，需要 `$EDITOR` 交互，无法在 E2E 中自动化测试
+- **inject** — 命令已实现，消耗 LLM token 向目标会话注入知识摘要，无 E2E
+- **pick** — 命令已实现，消耗 LLM token 向当前会话注入指定消息，无 E2E
+- **compact 使用 LLM 摘要**（非 `--manual`）— 功能已实现，E2E 中用 `--manual` 绕过 token 消耗
 
 设计文档：`docs/superpowers/specs/2026-04-20-ocb-new.md`

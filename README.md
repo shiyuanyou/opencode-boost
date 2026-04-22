@@ -44,19 +44,19 @@ cd /tmp/opencode-boost && npm install && npm link
 
 ## 测试
 
-单元测试：
+单元测试（49 个，秒级）：
 
 ```bash
 npm test
 ```
 
-E2E 测试（需要 opencode 已登录，消耗 token）：
+E2E 测试（34 个，需要 opencode 已登录，消耗 token）：
 
 ```bash
 npm run build && bash tests/e2e/run-e2e.sh
 ```
 
-测试在 `/tmp` 下创建隔离的 git 项目和会话，不影响你的真实工作。每次运行消耗约 4 次 `opencode run` 的 token。
+测试在 `/tmp` 下创建隔离的 git 项目和会话，不影响你的真实工作。每次运行消耗约 7 次 `opencode run` 的 token。
 
 ## 快速开始
 
@@ -109,6 +109,38 @@ $ ocb graph
 * fix-login (ses_2501c621eff) just now
   └── [6] try-jwt (ses_3a7f9b2c1d) just now
 
+# 压缩消息（手动摘要）
+$ ocb compact fix-login -m 1-4 --manual "尝试了 session 方案但不行，改用 JWT"
+⏳ Forking fix-login (ses_2501c621eff) -> new session...
+✓ fix-login updated: ses_2501c621eff -> ses_ocb_xxx (compressed)
+  Messages 1-4 compressed to 1 summary
+
+# 压缩消息（LLM 自动摘要）
+$ ocb compact fix-login -m 1-4 --model minimax-cn-coding-plan/MiniMax-M2.7
+
+# 查看操作历史
+$ ocb reflog fix-login-c1
+fix-login-c1 operation history:
+  [2] ses_ocb_xxx  compact  just now  from ses_2501c621eff
+  [1] ses_2501c621  (original)  just now
+
+# 回退到之前的版本
+$ ocb rollback fix-login-c1 -f
+✓ fix-login-c1 rolled back to ses_2501c621eff
+
+# 交互式 rebase（用编辑器选择 keep/compact/drop）
+$ ocb rebase fix-login
+
+# 跨会话注入知识
+$ ocb inject fix-login try-jwt
+⏳ Exporting source session...
+⏳ Extracting key knowledge...
+⏳ Injecting into target session...
+✓ Injected fix-login knowledge into ses_3a7f9b2c1d
+
+# 挑选特定消息注入当前会话
+$ ocb pick fix-login -m 2,4
+
 # 重命名
 $ ocb rename fix-login auth-v2
 ✓ Renamed: fix-login → auth-v2
@@ -121,9 +153,16 @@ $ ocb unmanage auth-v2
 $ ocb delete auth-v2
 ⚠ Delete session ses_2501c621eff? This cannot be undone. [y/N] y
 ✓ Deleted ses_2501c621eff
+
+# 查看 / 设置摘要模型
+$ ocb model
+$ ocb model --list
+$ ocb model fast minimax-cn-coding-plan/MiniMax-M2.7
 ```
 
 ## 命令参考
+
+### 会话查看与管理
 
 | 命令 | 说明 |
 |------|------|
@@ -135,12 +174,46 @@ $ ocb delete auth-v2
 | `ocb attach <name>` | 给最近的会话创建别名 |
 | `ocb attach <name> -s <sid>` | 给指定 session-id 创建别名 |
 | `ocb checkout <ref>` | 切换活跃会话（更新 state.json） |
-| `ocb checkout -b <name> <ref>` | 从指定会话 fork 出新会话并命名 |
-| `ocb graph` | 显示会话 fork 树（ASCII，含 fork 位置） |
 | `ocb rename <old> <new>` | 重命名会话别名 |
 | `ocb unmanage <ref>` | 从 ocb 管理中移除（会话保留） |
 | `ocb delete <ref>` | 彻底删除会话（调用 `opencode session delete`） |
 | `ocb delete <ref> -f` | 跳过确认直接删除 |
+
+### 分叉与会话树
+
+| 命令 | 说明 |
+|------|------|
+| `ocb checkout -b <name> <ref>` | 从指定会话 fork 出新会话并命名 |
+| `ocb checkout -b <name> <ref> --model <m>` | 指定模型 fork |
+| `ocb graph` | 显示会话 fork 树（ASCII，含 fork 位置） |
+
+### 压缩与历史
+
+| 命令 | 说明 |
+|------|------|
+| `ocb compact <ref> -m <from>-<to>` | 压缩指定范围消息为一条摘要 |
+| `ocb compact <ref> -m <range> --manual '摘要'` | 手动提供摘要（不消耗 token） |
+| `ocb compact <ref> -m <range> --model <m>` | 指定模型生成摘要 |
+| `ocb rebase <ref>` | 交互式 rebase（编辑器中选择 keep/compact/drop） |
+| `ocb reflog [ref]` | 查看操作历史（无参数查看当前会话） |
+| `ocb rollback <name>` | 回退到历史版本 |
+| `ocb rollback <name> -f` | 跳过确认直接回退 |
+
+### 跨会话复用
+
+| 命令 | 说明 |
+|------|------|
+| `ocb inject <source> [target]` | 从 source 会话提取知识注入 target（默认当前会话） |
+| `ocb inject <source> [target] --raw` | 跳过摘要，注入原始文本 |
+| `ocb pick <ref> -m 1,3,5` | 从 source 会话挑选指定消息注入当前会话 |
+
+### 配置
+
+| 命令 | 说明 |
+|------|------|
+| `ocb model` | 查看当前摘要模型配置 |
+| `ocb model <alias> <provider/model>` | 设置模型别名 |
+| `ocb model --list` | 列出所有可用模型 |
 
 `<ref>` 可以是别名（如 `fix-login`）或原始 session ID（如 `ses_2501c621eff`）。
 
@@ -152,7 +225,15 @@ $ ocb delete auth-v2
 ~/.local/share/opencode-boost/
 ├── names.json    # 别名 → session-id 映射（按项目目录）
 ├── forks.json    # fork 关系记录（parentSessionId + parentMessageId）
-└── state.json    # 每个项目的当前活跃会话
+├── state.json    # 每个项目的当前活跃会话
+└── reflog.json   # 操作历史（compact/rebase/rollback 记录）
+```
+
+配置存储在 `$XDG_CONFIG_HOME/opencode-boost/`：
+
+```
+~/.config/opencode-boost/
+└── config.json   # 模型别名、摘要模型配置
 ```
 
 `names.json` 示例：
@@ -172,8 +253,8 @@ $ ocb delete auth-v2
 |------|------|------|
 | Phase 1 | 查看 + 命名命令 | ✅ 已完成 |
 | Phase 2 | 分叉（`checkout -b`）+ 会话树（`graph`） | ✅ 已完成 |
-| Phase 3 | 压缩（`compact`）、rebase、操作历史（`reflog`）、回滚（`rollback`） | 🔲 |
-| Phase 4 | 跨会话知识注入（`inject`、`pick`） | 🔲 |
+| Phase 3 | 压缩（`compact`）、rebase、操作历史（`reflog`）、回滚（`rollback`） | ✅ 已完成 |
+| Phase 4 | 跨会话知识注入（`inject`、`pick`） | 🔧 已实现，待 E2E |
 
 ## License
 

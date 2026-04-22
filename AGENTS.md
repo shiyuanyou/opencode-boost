@@ -70,12 +70,13 @@ src/
 
 ## 已知问题
 
-- **活跃会话 export 截断**：当前正在使用的会话 export 出来 JSON 不完整。`checkout -b` 依赖 export 获取 lastMessageId，无法 fork 当前活跃会话——需先切到别的会话。已加 3 次重试 + 5s 退避。
-- **compact import 可能失败**：`opencode import` 对 JSON schema 校验严格（id/slug/directory/title/version/time 必须存在）。`rebuildExportJson` 生成新 `ses_ocb_` 前缀 ID 并保留其他字段。E2E 中 compact 测试仍偶发失败，需进一步调试。
+- **活跃会话 export 截断**：当前正在使用的会话 export 出来 JSON 不完整。`checkout -b` 和 `compact` 依赖 export，已加 3 次重试 + 5s 退避。需先切到别的会话再操作。
+- **rebase 需要交互式编辑器**：`rebase` 用 `$EDITOR` 打开计划文件，无法在 E2E 中自动化测试。
+- **inject/pick 未测 E2E**：命令已实现，但需要消耗 LLM token 注入消息到目标会话，E2E 暂未覆盖。
 
 ## 进度
 
-- **Phase 1 ✅** — 查看 + 命名（list, show, attach, checkout, rename, unmanage, delete, origin available）
-- **Phase 2 ✅** — 分叉（`checkout -b`）+ 会话树（`graph`）
-- **Phase 3 🔧** — 压缩（compact, rebase, reflog, rollback, model）— 命令已实现，compact E2E 偶发失败
-- **Phase 4 🔧** — 跨会话复用（inject, pick）— 命令已实现，未测 E2E
+- **Phase 1 ✅** — 查看 + 命名（list, show, attach, checkout, rename, unmanage, delete, origin available）— 22/22 E2E
+- **Phase 2 ✅** — 分叉（`checkout -b`）+ 会话树（`graph`）— 3/3 E2E
+- **Phase 3 ✅** — 压缩（compact, rebase, reflog, rollback, model）— 8/8 E2E（rebase 除外）
+- **Phase 4 🔧** — 跨会话复用（inject, pick）— 命令已实现，无 E2E
