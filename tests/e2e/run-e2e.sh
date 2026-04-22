@@ -218,9 +218,9 @@ run_phase1() {
     "ocb unmanage fix-css" 0 \
     --assert "Removed fix-css"
 
-  run_test T15 "list still shows unmanaged fix-css" project-a \
+  run_test T15 "list still shows unmanaged session" project-a \
     "ocb list" 0 \
-    --assert "login-module" --assert "fix-css" --assert "Unmanaged"
+    --assert "login-module" --assert "${PA_S2_SID:0:15}" --assert "Unmanaged"
 
   run_test T16 "origin available deprecated after unmanage" project-a \
     "ocb origin available" 0 \
