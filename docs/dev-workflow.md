@@ -1,111 +1,144 @@
-# ocb 开发流程手册
+# ocb 开发测试流程
 
-基于 v0.1.0 → v0.1.3 的真实开发调试过程整理。
-
----
-
-## 1. 改代码前：理解边界条件
-
-**教训**：`opencode session list --format json` 的行为依赖当前目录是否是 git 项目。在 git 项目内，只返回该项目的 session；在非 git 目录，返回所有 `projectId: "global"` 的 session。
-
-**实践**：调用外部 CLI 时，永远不要假设输出是干净的。在 `ocb` 里，我们选择在最底层（`listSessions`）做 directory 过滤，而不是在各个 command 里各自过滤——这样漏掉一个的概率为零。
+面向 Phase 3/4 开发的操作手册。所有命令从项目根目录执行。
 
 ---
 
-## 2. 改代码后立即跑的命令
+## 开发循环
 
-```bash
-npm run build && npm test
+```
+写代码 → build + 单元测试 → commit + tag → E2E → 有问题？
+  ↑                                                       |
+  └───────────────────────────────────────────────────────┘
 ```
 
-- 单元测试不需要 opencode，秒级完成
-- `npm run build` 必须先跑，E2E 用的是 `dist/index.js`
-
----
-
-## 3. E2E 测试
+每一步的命令：
 
 ```bash
-npm run build && bash tests/e2e/run-e2e.sh
-```
-
-### 已知的坑
-
-| 坑 | 原因 | 解决 |
-|---|---|---|
-| SID 提取为空 | `opencode run` 的 NDJSON 格式是 `{"type":"session","session":{"id":"ses_..."}}`，不是 `"sessionID":"ses_..."` | `lib.sh` 用 `grep '"type":"session"' | sed` 提取 |
-| `nounset` 报错 | `set -euo pipefail` 下空数组 `${arr[@]}` 会触发 unbound variable | 用 `${arr[@]+"${arr[@]}"}` |
-| 断言 title 包含消息内容 | `opencode` 的 session title 是 `New session - <timestamp>`，不是用户消息原文 | 断言用 `--min-lines` 或 short ID |
-| 最后创建的 session export 截断 | 活跃会话的 export JSON 不完整，这是 opencode 的 bug | `attach` 时用 `-s` 明确绑定较早的 session；`show` 测试避免用 `-m` 对最新 session |
-| macOS 没有 `timeout` 命令 | Linux 常见，macOS 不自带 | `create_session` 不加 timeout（opencode 自身会结束） |
-
-### E2E 测试开销
-
-每次消耗约 4 次 `opencode run` 的 token。短消息（如 `[MARKER]`）比长消息快得多且结果一样。
-
----
-
-## 4. Git 流程
-
-### 每次改动后
-
-```bash
-# 1. 确认测试通过
+# 1. 构建并跑单元测试（秒级，不消耗 token）
 npm run build && npm test
 
-# 2. 提交
-git add -A
-git commit -m "<type>: <description>"
+# 2. 确认通过后提交
+git add -A && git commit -m "<type>: <描述>"
+git tag v0.1.x  # patch 递增
 
-# 3. 打 tag（语义化版本）
-git tag v0.1.x
-
-# 4. E2E（消耗 token，确认无误后再跑）
+# 3. 跑 E2E（消耗约 4 次 opencode run 的 token）
 npm run build && bash tests/e2e/run-e2e.sh
-```
 
-### Tag 命名
-
-跟随 `package.json` 的 `version`。同版本多次修复递增 patch：`v0.1.0` → `v0.1.1` → `v0.1.2`。
-
-### 推送
-
-```bash
+# 4. E2E 通过后推送
 git push && git push --tags
 ```
 
----
-
-## 5. 发现问题后的调试循环
-
-```
-发现问题 → 定位根因 → 修代码 → 单元测试 → 提交+tag → E2E → 还有问题？
-     ↑                                                                    |
-     └────────────────────────────────────────────────────────────────────┘
-```
-
-### 这次的实际循环
-
-| 轮次 | 发现 | 修复 | tag |
-|---|---|---|---|
-| 1 | `listSessions` 不过滤 directory，可能操作错误的 session | `listSessions(cwd?)` 源头过滤 | v0.1.1 |
-| 2 | `create_session` SID 提取为空；nounset 空数组崩溃 | 修正 grep 模式；`${arr[@]+"..."}` | v0.1.2 |
-| 3 | E2E 断言 title 包含消息内容（实际是 timestamp）；attach 绑到活跃 session 导致 export 截断 | 改断言策略；attach 用 `-s` 明确绑定 | v0.1.3 |
-
-### 关键原则
-
-- **每一轮只修一个问题**，不要一次改多个不相关的东西
-- **每次修改后先跑单元测试**，确认不破坏已有逻辑
-- **E2E 放在最后**，因为消耗 token
-- **`2>/dev/null || true` 是调试的敌人**——吞掉错误信息会让问题完全不可见。生产代码可以吞，测试代码必须保留错误输出
+**顺序很重要**：单元测试 → commit → E2E → push。不要先 push 再测。
 
 ---
 
-## 6. 单元测试覆盖要点
+## 单元测试
 
-改了核心函数签名后，必须补充测试覆盖：
+```bash
+npm test               # vitest run
+npm run test:watch     # 监听模式
+```
 
-- `listSessions()` 无参数：返回全量（向后兼容）
-- `listSessions(cwd)` 有参数：只返回匹配 directory 的
-- `resolveRef` 的 raw session ID 查找：必须限定在 cwd 内
-- `attach -s`：拒绝不属于 cwd 的 session
+- 从 `src/` 直接 import，路径加 `.js` 后缀
+- 不需要 opencode，纯解析逻辑测试
+- 改了函数签名必须补测试——特别是 `src/lib/` 下的函数
+
+---
+
+## E2E 测试
+
+```bash
+npm run build && bash tests/e2e/run-e2e.sh
+```
+
+- 在 `/tmp` 下创建隔离的 git 项目和 session，测试完自动清理
+- 前置条件：opencode 已安装且已登录（需要 API key）
+- 脚本：`tests/e2e/run-e2e.sh`，辅助函数：`tests/e2e/lib.sh`
+
+### 写新 E2E 用例的规则
+
+1. **断言 short ID 而非 title**——session title 是 `New session - <timestamp>`，不是用户消息内容
+   ```bash
+   # ✓ 正确：断言 session 的 short ID
+   --assert "${PA_S1_SID:0:15}"
+   # ✗ 错误：断言消息内容出现在 title 里
+   --assert "E2E-PA-S1"
+   # ✗ 错误：只验行数不验内容
+   --min-lines 3
+   ```
+
+2. **attach 用 `-s` 明确绑定**——不带 `-s` 会绑到最新 session，可能是活跃状态导致 export 截断
+
+3. **setup 后等 session idle**——已内置 `sleep 5`，如果还出现 export 截断，可适当加长
+
+4. **空数组用安全语法**——`set -euo pipefail` 下 `${arr[@]}` 在空时会报错，用 `${arr[@]+"${arr[@]}"}`
+
+### E2E 用的辅助函数（lib.sh）
+
+```bash
+create_session "消息内容"     # 调 opencode run，返回 session ID
+run_test ID "描述" cwd cmd exit_code --assert "模式" --assert-not "模式" --min-lines N
+```
+
+---
+
+## opencode CLI 的已知坑
+
+| 坑 | 表现 | 影响 |
+|---|---|---|
+| 非项目目录返回全量 session | 在非 git 目录 `session list --format json` 返回所有 `projectId: "global"` 的 session | ocb 已在 `listSessions(cwd)` 源头过滤，不影响 |
+| 活跃会话 export 截断 | 当前正在使用的会话 `opencode export` 返回不完整 JSON | `show`、`checkout -b` 对活跃会话可能失败；等 session idle 后恢复 |
+| session title 不是消息内容 | title 是 `New session - <ISO timestamp>` | 断言用 short ID，不要断言 title |
+| NDJSON 中 SID 的字段路径 | `{"type":"session","session":{"id":"ses_..."}}`，不是顶层 `"sessionID"` | bash 提取用 `grep '"type":"session"' | sed` |
+| macOS 无 `timeout` 命令 | `create_session` 不能用 `timeout` 包裹 | 不加 timeout，依赖 opencode 自身结束 |
+
+---
+
+## 项目约定
+
+### 代码
+
+- ESM-only，本地 import 加 `.js` 后缀：`import { foo } from "./bar.js"`
+- tsup 单一入口 `src/index.ts`，目标 Node 18
+- 零直写 DB——所有 opencode 数据操作通过 `execa("opencode", [...])` 子进程
+
+### 架构
+
+```
+src/
+  index.ts              # commander 入口
+  commands/<cmd>.ts     # 各命令，接收 cwd 参数
+  lib/
+    opencode.ts         # opencode CLI 调用 + 输出解析（listSessions, exportSession, forkSession, deleteSession）
+    store.ts            # JSON 文件读写（names.json, state.json, forks.json）
+    ref.ts              # 别名 → session-id 解析（先查 names，再当 raw id，都限定在 cwd 内）
+    format.ts           # shortId, relativeTime, formatSession
+    paths.ts            # $XDG_DATA_HOME/opencode-boost
+  types.ts              # SessionInfo, ExportedSession, Store 类型
+```
+
+### 数据存储
+
+`$XDG_DATA_HOME/opencode-boost/`（默认 `~/.local/share/opencode-boost/`）：
+- `names.json` — `{ [directory]: { [name]: sessionId } }`
+- `state.json` — `{ [directory]: { current: name | null } }`
+- `forks.json` — `{ [directory]: { [childSid]: { parentSessionId, parentMessageId, timestamp } } }`
+
+### 新增命令的模式
+
+1. 在 `src/commands/` 新建文件，导出 `async function xxxCommand(cwd: string, ...): Promise<void>`
+2. 在 `src/index.ts` 注册 commander 子命令，调用时传 `process.cwd()`
+3. 用 `listSessions(cwd)` 获取 session 列表（已过滤 directory）
+4. 用 `resolveRef(ref, cwd)` 解析用户输入的别名或 raw session ID
+5. 在 `tests/` 下补单元测试
+6. 在 `tests/e2e/run-e2e.sh` 补 E2E 用例
+
+---
+
+## Phase 3/4 要改的东西
+
+Phase 3 — 压缩：compact, rebase, reflog, rollback
+Phase 4 — 跨会话复用：inject, pick
+
+设计文档：`docs/superpowers/specs/2026-04-20-ocb-new.md`
