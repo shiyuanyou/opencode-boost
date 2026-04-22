@@ -162,9 +162,9 @@ run_phase1() {
   print_section "Phase 1: View + Naming"
   source "$TEST_DIR/session-ids.env"
 
-  run_test T01 "origin available lists all unmanaged" project-a \
+  run_test T01 "origin available shows deprecation tip" project-a \
     "ocb origin available" 0 \
-    --assert "${PA_S1_SID:0:15}" --assert "${PA_S2_SID:0:15}" --assert "${PA_S3_SID:0:15}" --assert-not "${PB_S1_SID:0:15}"
+    --assert "Tip:"
 
   run_test T02 "attach by explicit session id" project-a \
     "ocb attach auth-feature -s $PA_S1_SID" 0 \
@@ -174,13 +174,13 @@ run_phase1() {
     "ocb attach fix-css -s $PA_S2_SID" 0 \
     --assert "Created: fix-css"
 
-  run_test T04 "list shows 2 managed sessions" project-a \
+  run_test T04 "list shows all sessions with managed and unmanaged" project-a \
     "ocb list" 0 \
-    --assert "auth-feature" --assert "fix-css" --assert-not "${PA_S3_SID:0:15}"
+    --assert "auth-feature" --assert "fix-css" --assert "Unmanaged" --assert "${PA_S3_SID:0:15}"
 
-  run_test T05 "origin available only shows pa-s3" project-a \
+  run_test T05 "origin available deprecated shows tip" project-a \
     "ocb origin available" 0 \
-    --assert "${PA_S3_SID:0:15}" --assert-not "auth-feature" --assert-not "fix-css"
+    --assert "Tip:" --assert-not "${PA_S3_SID:0:15}"
 
   run_test T06 "show displays message list" project-a \
     "ocb show auth-feature" 0 \
@@ -218,17 +218,17 @@ run_phase1() {
     "ocb unmanage fix-css" 0 \
     --assert "Removed fix-css"
 
-  run_test T15 "list no longer shows unmanaged" project-a \
+  run_test T15 "list still shows unmanaged fix-css" project-a \
     "ocb list" 0 \
-    --assert "login-module" --assert-not "fix-css"
+    --assert "login-module" --assert "fix-css" --assert "Unmanaged"
 
-  run_test T16 "origin available shows unmanaged again" project-a \
+  run_test T16 "origin available deprecated after unmanage" project-a \
     "ocb origin available" 0 \
-    --assert "${PA_S2_SID:0:15}"
+    --assert "Tip:"
 
-  run_test T17 "cross-project isolation" project-b \
+  run_test T17 "cross-project list shows all sessions unmanaged" project-b \
     "ocb list" 0 \
-    --assert "No managed sessions"
+    --assert "${PB_S1_SID:0:15}"
 
   run_test T17b "attach without -s picks most recent in project-b" project-b \
     "ocb attach api-work" 0 \
@@ -246,13 +246,21 @@ run_phase1() {
     "ocb delete $PA_S3_SID -f" 0 \
     --assert "Deleted"
 
-  run_test T21 "deleted not in origin available" project-a \
+  run_test T21 "origin available deprecated after delete" project-a \
     "ocb origin available" 0 \
-    --assert-not "${PA_S3_SID:0:15}"
+    --assert "Tip:"
 
   run_test T22 "show nonexistent returns error" project-a \
     "ocb show nonexistent-xyz" 1 \
     --assert "Error"
+
+  run_test T22b "attach --all auto-names all unmanaged" project-a \
+    "ocb attach --all" 0 \
+    --assert "Created:" --assert "${PA_S2_SID:0:15}"
+
+  run_test T22c "list shows all managed after --all" project-a \
+    "ocb list" 0 \
+    --assert-not "Unmanaged"
 }
 
 run_phase2() {
