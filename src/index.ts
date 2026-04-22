@@ -45,7 +45,7 @@ const origin = program.command("origin").description("Origin session commands");
 
 origin
   .command("available")
-  .description("List unmanaged sessions in current directory")
+  .description("(deprecated) Use `ocb list` instead - now shows all sessions")
   .action(action(async () => {
     await originAvailableCommand(process.cwd());
   }));
