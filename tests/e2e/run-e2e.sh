@@ -73,7 +73,7 @@ PB_S1_SID=$PB_S1_SID
 EOF
 
   info "Waiting for sessions to idle..."
-  sleep 10
+  sleep 15
 
   success "All sessions created"
 }

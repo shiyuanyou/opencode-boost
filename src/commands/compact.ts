@@ -32,7 +32,21 @@ export async function compactCommand(
 
   try {
     console.log(`\u23f3 Exporting forked session...`);
-    const exported = await exportSession(forkSid);
+    let exported;
+    for (let attempt = 0; attempt < 3; attempt++) {
+      try {
+        exported = await exportSession(forkSid);
+        break;
+      } catch (err) {
+        if (attempt < 2 && (err as Error).message.includes("truncated")) {
+          console.log(`  Session still active, waiting... (attempt ${attempt + 1}/3)`);
+          await new Promise((r) => setTimeout(r, 5000));
+          continue;
+        }
+        throw err;
+      }
+    }
+    if (!exported) throw new Error("Failed to export session after retries");
     const messages = buildMessageList(exported.messages);
 
     if (from < 1 || to > messages.length || from > to) {
