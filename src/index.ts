@@ -92,7 +92,8 @@ program
   .command("checkout <ref>")
   .description("Switch active session")
   .option("-b <name>", "Fork from ref into new named session")
-  .action(async (ref: string, opts: { b?: string }) => {
+  .option("--model <model>", "Model to use for fork")
+  .action(async (ref: string, opts: { b?: string; model?: string }) => {
     try {
       await checkoutCommand(ref, process.cwd(), opts);
     } catch (err) {

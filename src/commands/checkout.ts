@@ -8,10 +8,10 @@ import type { ForkInfo } from "../types.js";
 export async function checkoutCommand(
   ref: string,
   cwd: string,
-  opts?: { b?: string }
+  opts?: { b?: string; model?: string }
 ): Promise<void> {
   if (opts?.b) {
-    return checkoutFork(opts.b, ref, cwd);
+    return checkoutFork(opts.b, ref, cwd, opts.model);
   }
   return checkoutSwitch(ref, cwd);
 }
@@ -33,7 +33,7 @@ async function checkoutSwitch(ref: string, cwd: string): Promise<void> {
   console.log(`  Open session: opencode -s ${sid}`);
 }
 
-async function checkoutFork(name: string, parentRef: string, cwd: string): Promise<void> {
+async function checkoutFork(name: string, parentRef: string, cwd: string, model?: string): Promise<void> {
   const names = await readNames();
   const dirNames = names[cwd] ?? {};
 
@@ -77,7 +77,7 @@ async function checkoutFork(name: string, parentRef: string, cwd: string): Promi
   const parentMessages = buildMessageList(parentExport.messages);
   const lastMsgId = parentMessages.length > 0 ? parentMessages[parentMessages.length - 1].info.id : "";
 
-  const result = await forkSession(parentSid, "ocb-fork");
+  const result = await forkSession(parentSid, "ocb-fork", model);
 
   const newSid = result.sessionId;
   const forkInfo: ForkInfo = {

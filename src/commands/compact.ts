@@ -27,7 +27,7 @@ export async function compactCommand(
   const [from, to] = rangeParts;
 
   console.log(`\u23f3 Forking ${name} (${shortId(sid)}) -> new session...`);
-  const forkResult = await forkSession(sid, "ocb-compact-fork");
+  const forkResult = await forkSession(sid, "ocb-compact-fork", opts.model);
   const forkSid = forkResult.sessionId;
 
   try {

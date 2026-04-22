@@ -52,9 +52,9 @@ assert_prerequisites() {
 }
 
 create_session() {
-  local message="$1"
+  local message="${1:-hi}"
   local output
-  output=$(opencode run "$message" --format json 2>&1)
+  output=$(opencode run "$message" --format json --model "minimax-cn-coding-plan/MiniMax-M2.7" 2>&1)
 
   if [ -z "$output" ]; then
     echo ""

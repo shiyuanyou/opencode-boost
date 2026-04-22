@@ -27,7 +27,7 @@ export function parseSessionList(raw: string): SessionInfo[] {
 
 export async function listSessions(cwd?: string): Promise<SessionInfo[]> {
   try {
-    const { stdout } = await execa("opencode", ["session", "list", "--format", "json"]);
+    const { stdout } = await execa("opencode", ["session", "list", "--format", "json"], { input: "" });
     const all = parseSessionList(stdout);
     if (!cwd) return all;
     return all.filter((s) => s.directory === cwd);
@@ -38,7 +38,7 @@ export async function listSessions(cwd?: string): Promise<SessionInfo[]> {
 
 export async function exportSession(sid: string): Promise<ExportedSession> {
   try {
-    const { stdout } = await execa("opencode", ["export", sid]);
+    const { stdout } = await execa("opencode", ["export", sid], { input: "" });
     return parseExportOutput(stdout);
   } catch (err) {
     throw new Error(`Failed to export session ${sid}: ${(err as Error).message}`);
@@ -88,15 +88,12 @@ export function parseRunEventStream(raw: string): RunResult {
   return { sessionId, text: textParts.join("") };
 }
 
-export async function forkSession(parentSid: string, message: string): Promise<RunResult> {
+export async function forkSession(parentSid: string, message: string, model?: string): Promise<RunResult> {
   try {
-    const { stdout } = await execa("opencode", [
-      "run",
-      "--session", parentSid,
-      "--fork",
-      "--format", "json",
-      message,
-    ], { timeout: 180_000 });
+    const args = ["run", "--session", parentSid, "--fork", "--format", "json"];
+    if (model) args.push("--model", model);
+    args.push(message);
+    const { stdout } = await execa("opencode", args, { timeout: 180_000, input: "" });
     return parseRunEventStream(stdout);
   } catch (err) {
     throw new Error(`Failed to fork session ${parentSid}: ${(err as Error).message}`);
@@ -105,7 +102,7 @@ export async function forkSession(parentSid: string, message: string): Promise<R
 
 export async function deleteSession(sid: string): Promise<void> {
   try {
-    await execa("opencode", ["session", "delete", sid]);
+    await execa("opencode", ["session", "delete", sid], { input: "" });
   } catch (err) {
     throw new Error(`Failed to delete session ${sid}: ${(err as Error).message}`);
   }
@@ -113,24 +110,20 @@ export async function deleteSession(sid: string): Promise<void> {
 
 export async function importSession(jsonPath: string): Promise<string> {
   try {
-    const { stdout } = await execa("opencode", ["import", jsonPath]);
-    const lines = stdout.split("\n");
-    for (const line of lines) {
-      const trimmed = line.trim();
-      if (!trimmed) continue;
-      try {
-        const event = JSON.parse(trimmed) as Record<string, unknown>;
-        if (event.type === "session" && typeof event.session === "object" && event.session !== null) {
-          const sess = event.session as Record<string, unknown>;
-          if (typeof sess.id === "string") return sess.id;
-        }
-        if (event.type === "step_start" && typeof event.sessionID === "string") {
-          return event.sessionID;
-        }
-      } catch {
-        // skip non-JSON lines
-      }
-    }
+    const { stdout } = await execa("opencode", ["import", jsonPath], { input: "" });
+
+    const jsonMatch = stdout.match(/"sessionID"\s*:\s*"(ses_[^"]+)"/);
+    if (jsonMatch) return jsonMatch[1];
+
+    const jsonMatch2 = stdout.match(/"id"\s*:\s*"(ses_[^"]+)"/);
+    if (jsonMatch2) return jsonMatch2[1];
+
+    const textMatch = stdout.match(/Imported session:\s*(ses_\S+)/);
+    if (textMatch) return textMatch[1];
+
+    const fallback = stdout.match(/(ses_[a-zA-Z0-9]+)/);
+    if (fallback) return fallback[1];
+
     throw new Error("No session ID found in import output");
   } catch (err) {
     throw new Error(`Failed to import session: ${(err as Error).message}`);
@@ -146,7 +139,7 @@ export async function runSession(
     if (opts?.model) args.push("--model", opts.model);
     if (opts?.title) args.push("--title", opts.title);
     args.push(message);
-    const { stdout } = await execa("opencode", args, { timeout: 180_000 });
+    const { stdout } = await execa("opencode", args, { timeout: 180_000, input: "" });
     return parseRunEventStream(stdout);
   } catch (err) {
     throw new Error(`Failed to run: ${(err as Error).message}`);
@@ -160,7 +153,7 @@ export async function injectMessage(sessionId: string, message: string): Promise
       "--session", sessionId,
       "--format", "json",
       message,
-    ], { timeout: 180_000 });
+    ], { timeout: 180_000, input: "" });
     return parseRunEventStream(stdout);
   } catch (err) {
     throw new Error(`Failed to inject into session ${sessionId}: ${(err as Error).message}`);
@@ -205,7 +198,7 @@ export function parseModelsOutput(raw: string): ModelInfo[] {
 
 export async function listModels(): Promise<ModelInfo[]> {
   try {
-    const { stdout } = await execa("opencode", ["models", "--verbose"]);
+    const { stdout } = await execa("opencode", ["models", "--verbose"], { input: "" });
     return parseModelsOutput(stdout);
   } catch (err) {
     throw new Error(`Failed to list models: ${(err as Error).message}`);

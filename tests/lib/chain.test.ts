@@ -122,14 +122,14 @@ describe("repairChain", () => {
 });
 
 describe("rebuildExportJson", () => {
-  it("clears session-level id and message-level sessionIDs", () => {
+  it("replaces session-level id with new one and clears message-level sessionIDs", () => {
     const messages = [
       msg("m1", undefined, "user", "hello"),
     ];
     const exported = makeExport(messages);
 
     const rebuilt = rebuildExportJson(exported, messages);
-    expect((rebuilt.info as Record<string, unknown>).id).toBeUndefined();
+    expect((rebuilt.info as Record<string, unknown>).id).toMatch(/^ses_ocb_/);
     expect(rebuilt.messages[0].info.sessionID).toBeUndefined();
   });
 

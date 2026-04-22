@@ -123,7 +123,8 @@ export function rebuildExportJson(
   const rebuilt = structuredClone(original);
   rebuilt.messages = messages;
 
-  delete rebuilt.info.id;
+  rebuilt.info.id = `ses_ocb_${crypto.randomBytes(12).toString("hex")}`;
+
   for (const msg of rebuilt.messages) {
     const info = msg.info as Record<string, unknown>;
     delete info.sessionID;

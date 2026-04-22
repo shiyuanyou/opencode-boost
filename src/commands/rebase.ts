@@ -22,7 +22,7 @@ export async function rebaseCommand(
   const name = hasName?.[0] ?? shortId(sid);
 
   console.log(`\u23f3 Forking ${name} (${shortId(sid)}) -> new session...`);
-  const forkResult = await forkSession(sid, "ocb-rebase-fork");
+  const forkResult = await forkSession(sid, "ocb-rebase-fork", opts.model);
   const forkSid = forkResult.sessionId;
 
   try {

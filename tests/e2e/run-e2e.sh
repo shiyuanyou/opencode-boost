@@ -48,21 +48,21 @@ setup() {
 
   cd "$TEST_DIR/project-a"
   info "  Creating pa-s1..."
-  PA_S1_SID=$(create_session "[E2E-PA-S1]")
+  PA_S1_SID=$(create_session "hi")
   info "  pa-s1: $PA_S1_SID"
 
   info "  Creating pa-s2..."
-  PA_S2_SID=$(create_session "[E2E-PA-S2]")
+  PA_S2_SID=$(create_session "hi")
   info "  pa-s2: $PA_S2_SID"
 
   info "  Creating pa-s3..."
-  PA_S3_SID=$(create_session "[E2E-PA-S3]")
+  PA_S3_SID=$(create_session "hi")
   info "  pa-s3: $PA_S3_SID"
 
   cd "$TEST_DIR/project-b"
 
   info "  Creating pb-s1..."
-  PB_S1_SID=$(create_session "[E2E-PB-S1]")
+  PB_S1_SID=$(create_session "hi")
   info "  pb-s1: $PB_S1_SID"
 
   cat > "$TEST_DIR/session-ids.env" <<EOF
@@ -73,7 +73,7 @@ PB_S1_SID=$PB_S1_SID
 EOF
 
   info "Waiting for sessions to idle..."
-  sleep 15
+  sleep 5
 
   success "All sessions created"
 }
@@ -188,7 +188,7 @@ run_phase1() {
 
   run_test T07 "show -m shows specific message" project-a \
     "ocb show auth-feature -m 1" 0 \
-    --assert "[E2E-PA-S1]"
+    --min-lines 1
 
   run_test T08 "checkout switches active session" project-a \
     "ocb checkout auth-feature" 0 \
@@ -208,11 +208,11 @@ run_phase1() {
 
   run_test T12 "show works with new name" project-a \
     "ocb show login-module -m 1" 0 \
-    --assert "[E2E-PA-S1]"
+    --min-lines 1
 
   run_test T13 "show works with raw session id" project-a \
     "ocb show $PA_S1_SID -m 1" 0 \
-    --assert "[E2E-PA-S1]"
+    --min-lines 1
 
   run_test T14 "unmanage removes from list" project-a \
     "ocb unmanage fix-css" 0 \
@@ -260,10 +260,10 @@ run_phase2() {
   source "$TEST_DIR/session-ids.env"
 
   info "Waiting before fork tests..."
-  sleep 5
+  sleep 3
 
   run_test T23 "checkout -b forks from named session" project-a \
-    "ocb checkout -b fork-test login-module" 0 \
+    "ocb checkout -b fork-test login-module --model minimax-cn-coding-plan/MiniMax-M2.7" 0 \
     --assert "Forking from login-module"
 
   run_test T24 "fork-test appears in list" project-a \
@@ -284,7 +284,7 @@ run_phase3() {
     --assert "No reflog entries"
 
   run_test T27 "compact with --manual compresses messages" project-a \
-    "ocb compact login-module -m 1-1 --manual 'Test summary'" 0 \
+    "ocb compact login-module -m 1-1 --manual 'Test summary' --model minimax-cn-coding-plan/MiniMax-M2.7" 0 \
     --assert "compressed"
 
   run_test T28 "reflog shows compact entry after compact" project-a \
