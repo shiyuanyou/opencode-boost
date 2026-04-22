@@ -15,10 +15,12 @@
 
 核心原则：**零直写数据库**。所有操作通过 opencode 官方 CLI 完成，opencode 升级不会破坏你的数据。
 
-## 开发
+## 安装
+
+### 人工安装
 
 ```bash
-git clone https://github.com/<you>/opencode-boost.git
+git clone https://github.com/shiyuanyou/opencode-boost.git
 cd opencode-boost
 npm install
 npm link
@@ -26,7 +28,19 @@ npm link
 
 需要 [Node.js](https://nodejs.org/) >= 18 和 [opencode](https://opencode.ai) >= 1.14。
 
-开发流程详见 [docs/dev-workflow.md](docs/dev-workflow.md)。
+### 让 AI agent 安装
+
+把以下指令粘贴给 opencode / Claude / Cursor 等 AI 编程助手：
+
+```
+在 /tmp 下安装 opencode-boost 并 link 到全局：
+
+git clone https://github.com/shiyuanyou/opencode-boost.git /tmp/opencode-boost
+cd /tmp/opencode-boost && npm install && npm link
+
+验证：ocb --version
+前置：需要 Node >= 18 和 opencode >= 1.14
+```
 
 ## 测试
 
