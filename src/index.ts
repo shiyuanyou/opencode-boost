@@ -67,11 +67,12 @@ program
   }));
 
 program
-  .command("attach <name>")
-  .description("Create alias for a session")
+  .command("attach [name]")
+  .description("Create alias for a session (auto-names if session ID given)")
   .option("-s <sid>", "Session ID to attach (default: most recent)")
-  .action(action(async (name: string, opts: { s?: string }) => {
-    await attachCommand(name, process.cwd(), opts);
+  .option("--all", "Attach all unmanaged sessions with auto-generated names")
+  .action(action(async (name: string | undefined, opts: { s?: string; all?: boolean }) => {
+    await attachCommand(name ?? "", process.cwd(), opts);
   }));
 
 program

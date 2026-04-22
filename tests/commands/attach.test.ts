@@ -62,4 +62,51 @@ describe("attachCommand", () => {
       attachCommand("x", "/proj1", {}),
     ).rejects.toThrow("No sessions found in /proj1");
   });
+
+  it("attach --all imports all unmanaged sessions with auto names", async () => {
+    vi.mocked(listSessions).mockResolvedValue([
+      { id: "ses_aaa", title: "Feature Auth", updated: 3000, created: 1000, projectId: "p1", directory: "/proj" },
+      { id: "ses_bbb", title: "Fix Bug #42", updated: 2000, created: 900, projectId: "p1", directory: "/proj" },
+    ]);
+    vi.mocked(readNames).mockResolvedValue({});
+
+    await attachCommand("", "/proj", { all: true });
+
+    expect(writeNames).toHaveBeenCalledWith({
+      "/proj": {
+        "feature-auth": "ses_aaa",
+        "fix-bug-42": "ses_bbb",
+      },
+    });
+  });
+
+  it("attach --all skips already managed sessions", async () => {
+    vi.mocked(listSessions).mockResolvedValue([
+      { id: "ses_aaa", title: "Feature Auth", updated: 3000, created: 1000, projectId: "p1", directory: "/proj" },
+      { id: "ses_bbb", title: "Fix Bug", updated: 2000, created: 900, projectId: "p1", directory: "/proj" },
+    ]);
+    vi.mocked(readNames).mockResolvedValue({ "/proj": { "existing": "ses_aaa" } });
+
+    await attachCommand("", "/proj", { all: true });
+
+    expect(writeNames).toHaveBeenCalledWith({
+      "/proj": {
+        "existing": "ses_aaa",
+        "fix-bug": "ses_bbb",
+      },
+    });
+  });
+
+  it("single attach auto-names from title when name looks like a session ID", async () => {
+    vi.mocked(listSessions).mockResolvedValue([
+      { id: "ses_abc123longid", title: "My Feature", updated: 3000, created: 1000, projectId: "p1", directory: "/proj" },
+    ]);
+    vi.mocked(readNames).mockResolvedValue({});
+
+    await attachCommand("ses_abc123longid", "/proj", {});
+
+    expect(writeNames).toHaveBeenCalledWith({
+      "/proj": { "my-feature": "ses_abc123longid" },
+    });
+  });
 });
