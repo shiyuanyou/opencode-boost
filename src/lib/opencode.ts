@@ -63,11 +63,20 @@ export function parseRunEventStream(raw: string): RunResult {
         const sess = event.session as Record<string, unknown>;
         if (typeof sess.id === "string") sessionId = sess.id;
       }
+      if (!sessionId && event.type === "step_start" && typeof event.sessionID === "string") {
+        sessionId = event.sessionID;
+      }
       if (event.type === "assistant" && Array.isArray(event.content)) {
         for (const part of event.content as Record<string, unknown>[]) {
           if (part.type === "text" && typeof part.text === "string") {
             textParts.push(part.text);
           }
+        }
+      }
+      if (event.type === "text" && typeof event.part === "object" && event.part !== null) {
+        const part = event.part as Record<string, unknown>;
+        if (part.type === "text" && typeof part.text === "string") {
+          textParts.push(part.text as string);
         }
       }
     } catch {
@@ -87,7 +96,7 @@ export async function forkSession(parentSid: string, message: string): Promise<R
       "--fork",
       "--format", "json",
       message,
-    ], { timeout: 120_000 });
+    ], { timeout: 180_000 });
     return parseRunEventStream(stdout);
   } catch (err) {
     throw new Error(`Failed to fork session ${parentSid}: ${(err as Error).message}`);
@@ -115,6 +124,9 @@ export async function importSession(jsonPath: string): Promise<string> {
           const sess = event.session as Record<string, unknown>;
           if (typeof sess.id === "string") return sess.id;
         }
+        if (event.type === "step_start" && typeof event.sessionID === "string") {
+          return event.sessionID;
+        }
       } catch {
         // skip non-JSON lines
       }
@@ -134,7 +146,7 @@ export async function runSession(
     if (opts?.model) args.push("--model", opts.model);
     if (opts?.title) args.push("--title", opts.title);
     args.push(message);
-    const { stdout } = await execa("opencode", args, { timeout: 120_000 });
+    const { stdout } = await execa("opencode", args, { timeout: 180_000 });
     return parseRunEventStream(stdout);
   } catch (err) {
     throw new Error(`Failed to run: ${(err as Error).message}`);
@@ -148,7 +160,7 @@ export async function injectMessage(sessionId: string, message: string): Promise
       "--session", sessionId,
       "--format", "json",
       message,
-    ], { timeout: 120_000 });
+    ], { timeout: 180_000 });
     return parseRunEventStream(stdout);
   } catch (err) {
     throw new Error(`Failed to inject into session ${sessionId}: ${(err as Error).message}`);

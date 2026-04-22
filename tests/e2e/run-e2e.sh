@@ -73,7 +73,7 @@ PB_S1_SID=$PB_S1_SID
 EOF
 
   info "Waiting for sessions to idle..."
-  sleep 5
+  sleep 10
 
   success "All sessions created"
 }
@@ -255,6 +255,64 @@ run_phase1() {
     --assert "Error"
 }
 
+run_phase2() {
+  print_section "Phase 2: Fork + Graph"
+  source "$TEST_DIR/session-ids.env"
+
+  info "Waiting before fork tests..."
+  sleep 5
+
+  run_test T23 "checkout -b forks from named session" project-a \
+    "ocb checkout -b fork-test login-module" 0 \
+    --assert "Forking from login-module"
+
+  run_test T24 "fork-test appears in list" project-a \
+    "ocb list" 0 \
+    --assert "fork-test"
+
+  run_test T25 "graph shows fork tree" project-a \
+    "ocb graph" 0 \
+    --assert "fork-test" --min-lines 2
+}
+
+run_phase3() {
+  print_section "Phase 3: Compact + Reflog + Rollback"
+  source "$TEST_DIR/session-ids.env"
+
+  run_test T26 "reflog shows no entries for new name" project-a \
+    "ocb reflog fork-test" 0 \
+    --assert "No reflog entries"
+
+  run_test T27 "compact with --manual compresses messages" project-a \
+    "ocb compact login-module -m 1-1 --manual 'Test summary'" 0 \
+    --assert "compressed"
+
+  run_test T28 "reflog shows compact entry after compact" project-a \
+    "ocb reflog" 0 \
+    --assert "compact"
+
+  run_test T29 "compact creates new named session with -c suffix" project-a \
+    "ocb list" 0 \
+    --assert "login-module-c1"
+
+  run_test T30 "rollback reverts name to previous version" project-a \
+    "ocb rollback login-module-c1 -f" 0 \
+    --assert "rolled back"
+
+  run_test T31 "reflog shows rollback entry" project-a \
+    "ocb reflog login-module-c1" 0 \
+    --assert "rollback"
+
+  run_test T32 "model command shows no config" project-a \
+    "ocb model" 0 \
+    --assert "No default model"
+
+  run_test T33 "model --list lists available models" project-a \
+    "ocb model --list" 0 \
+    --min-lines 2
+}
+
+
 # ── Main ──
 main() {
   echo ""
@@ -270,6 +328,8 @@ main() {
 
   setup
   run_phase1
+  run_phase2
+  run_phase3
 
   echo ""
   echo "════════════════════════════════════════════"

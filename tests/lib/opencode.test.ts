@@ -61,6 +61,16 @@ describe("parseRunEventStream", () => {
     const lines = JSON.stringify({ type: "message", message: { id: "msg_001" } });
     expect(() => parseRunEventStream(lines)).toThrow("No session event found");
   });
+
+  it("extracts session-id from step_start event (v1.14.18 format)", () => {
+    const lines = [
+      JSON.stringify({ type: "step_start", sessionID: "ses_new456", part: { id: "prt_1" } }),
+      JSON.stringify({ type: "text", sessionID: "ses_new456", part: { type: "text", text: "Hello" } }),
+    ].join("\n");
+    const result = parseRunEventStream(lines);
+    expect(result.sessionId).toBe("ses_new456");
+    expect(result.text).toBe("Hello");
+  });
 });
 
 describe("listSessions", () => {
