@@ -1,6 +1,6 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
 
-import { parseExportOutput, parseSessionList, parseRunEventStream, listSessions, parseModelsOutput } from "../../src/lib/opencode.js";
+import { parseExportOutput, parseSessionList, parseRunEventStream, listSessions, parseModelsOutput, getCurrentSession } from "../../src/lib/opencode.js";
 
 vi.mock("execa", () => ({
   execa: vi.fn(),
@@ -140,5 +140,34 @@ describe("parseModelsOutput", () => {
 
   it("returns empty array for empty input", () => {
     expect(parseModelsOutput("")).toHaveLength(0);
+  });
+});
+
+describe("getCurrentSession", () => {
+  it("parses opencode -c output", async () => {
+    const mockOutput = `
+                                   ▄
+  █▀▀█ █▀▀█ █▀▀█ █▀▀▄ █▀▀▀ █▀▀█ █▀▀█ █▀▀█
+  █  █ █  █ █▀▀▀ █  █ █    █  █ █  █ █▀▀▀
+  ▀▀▀▀ █▀▀▀ ▀▀▀▀ ▀▀▀▀ ▀▀▀▀ ▀▀▀▀ ▀▀▀▀ ▀▀▀▀
+
+  Session   My Great Session
+  Continue  opencode -s ses_abc123def456`;
+
+    vi.mocked(execa).mockResolvedValue({ stdout: mockOutput } as any);
+    const result = await getCurrentSession();
+    expect(result).toBe("ses_abc123def456");
+  });
+
+  it("returns null when no session found", async () => {
+    vi.mocked(execa).mockResolvedValue({ stdout: "no session here" } as any);
+    const result = await getCurrentSession();
+    expect(result).toBeNull();
+  });
+
+  it("returns null when opencode -c fails", async () => {
+    vi.mocked(execa).mockRejectedValue(new Error("no active session"));
+    const result = await getCurrentSession();
+    expect(result).toBeNull();
   });
 });

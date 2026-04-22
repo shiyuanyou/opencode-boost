@@ -196,6 +196,16 @@ export function parseModelsOutput(raw: string): ModelInfo[] {
   return models;
 }
 
+export async function getCurrentSession(): Promise<string | null> {
+  try {
+    const { stdout } = await execa("opencode", ["-c"], { input: "", reject: false });
+    const match = stdout.match(/opencode\s+-s\s+(ses_[a-zA-Z0-9]+)/);
+    return match ? match[1] : null;
+  } catch {
+    return null;
+  }
+}
+
 export async function listModels(): Promise<ModelInfo[]> {
   try {
     const { stdout } = await execa("opencode", ["models", "--verbose"], { input: "" });
