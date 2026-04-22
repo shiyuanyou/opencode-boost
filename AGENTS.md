@@ -86,5 +86,7 @@ src/
 
 - **Phase 1 ✅** — 查看 + 命名（list, show, attach, checkout, rename, unmanage, delete, origin available）— 22/22 E2E
 - **Phase 2 ✅** — 分叉（`checkout -b`）+ 会话树（`graph`）— 3/3 E2E
-- **Phase 3 ✅** — 压缩（compact, rebase, reflog, rollback, model）— 8/8 E2E（rebase 除外）
+- **Phase 3 ✅** — 压缩（compact, rebase, reflog, rollback, model）— 9/9 E2E（rebase 除外）
 - **Phase 4 🔧** — 跨会话复用（inject, pick）— 命令已实现，无 E2E
+
+共 57 单元测试 + 34 E2E 测试，全部通过。
