@@ -27,7 +27,11 @@ npm run build && bash tests/e2e/run-e2e.sh
 
 E2E 使用 `minimax-cn-coding-plan/MiniMax-M2.7` 便宜模型创建测试 session。
 
-没有配置 lint / typecheck 脚本。
+类型检查（不输出文件，只报错）：
+
+```bash
+npx tsc --noEmit
+```
 
 ## 开发循环
 
@@ -49,6 +53,7 @@ src/
     paths.ts         # $XDG_DATA_HOME/opencode-boost + $XDG_CONFIG_HOME/opencode-boost
     ref.ts           # 别名 → session-id 解析（先查 names，再当 raw id）
     format.ts        # 输出格式化
+    retry.ts         # Export with retry+backoff for active session truncation
     chain.ts         # parentID 链修复算法（repairChain, rebuildExportJson）
     summarizer.ts    # LLM 摘要引擎（summarizeMessages, extractKnowledge, extractMessageTexts）
   types.ts           # SessionInfo, ExportedSession, Store, ReflogStore, ConfigStore 类型
@@ -67,10 +72,13 @@ src/
 - tsup 打包单一入口 `src/index.ts`，目标 Node 18
 - 测试直接从 `src/` 导入（vitest，无 path alias）
 - 无代码注释风格要求，但现有代码无注释
+- 所有 command action 通过 `action()` 包装器统一错误处理（index.ts），不手写 try/catch
+- `exportWithRetry()` 处理活跃会话 export 截断的重试逻辑，compact/checkout 必须使用它而非裸调 `exportSession`
 
 ## 已知问题
 
-- **活跃会话 export 截断**：当前正在使用的会话 export 出来 JSON 不完整。`checkout -b` 和 `compact` 依赖 export，已加 3 次重试 + 5s 退避。需先切到别的会话再操作。
+- **活跃会话 export 截断**：当前正在使用的会话 export 出来 JSON 不完整。`checkout -b` 和 `compact` 依赖 export，已通过 `exportWithRetry()` 加 3 次重试 + 5s 退避。需先切到别的会话再操作。
+- **tsconfig 需要 `types: ["node"]`**：已配置。如果重新生成 tsconfig 记得加回来，否则 `tsc --noEmit` 全是噪音。
 - **rebase 需要交互式编辑器**：`rebase` 用 `$EDITOR` 打开计划文件，无法在 E2E 中自动化测试。
 - **inject/pick 未测 E2E**：命令已实现，但需要消耗 LLM token 注入消息到目标会话，E2E 暂未覆盖。
 
