@@ -19,3 +19,8 @@ export function relativeTime(ms: number): string {
   const days = Math.floor(hours / 24);
   return `${days}d ago`;
 }
+
+export function formatUnmanagedSession(title: string, sid: string): string {
+  const label = title || "(no title)";
+  return `  ${shortId(sid).padEnd(18)} ${label.padEnd(30)} [unmanaged]`;
+}
