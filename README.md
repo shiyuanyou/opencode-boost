@@ -15,7 +15,7 @@
 
 核心原则：**零直写数据库**。所有操作通过 opencode 官方 CLI 完成，opencode 升级不会破坏你的数据。
 
-## 安装
+## 开发
 
 ```bash
 git clone https://github.com/<you>/opencode-boost.git
@@ -25,6 +25,24 @@ npm link
 ```
 
 需要 [Node.js](https://nodejs.org/) >= 18 和 [opencode](https://opencode.ai) >= 1.14。
+
+开发流程详见 [docs/dev-workflow.md](docs/dev-workflow.md)。
+
+## 测试
+
+单元测试：
+
+```bash
+npm test
+```
+
+E2E 测试（需要 opencode 已登录，消耗 token）：
+
+```bash
+npm run build && bash tests/e2e/run-e2e.sh
+```
+
+测试在 `/tmp` 下创建隔离的 git 项目和会话，不影响你的真实工作。每次运行消耗约 4 次 `opencode run` 的 token。
 
 ## 快速开始
 
@@ -133,25 +151,6 @@ $ ocb delete auth-v2
   }
 }
 ```
-
-## 测试
-
-### 单元测试
-
-```bash
-npm test
-```
-
-### E2E 测试
-
-每次开发后都应运行，验证所有命令在真实 opencode 会话上工作正常。
-
-```bash
-npm run build
-bash tests/e2e/run-e2e.sh
-```
-
-测试在 `/tmp` 下创建隔离的 git 项目和会话，不影响你的真实工作。每次运行消耗约 4 次 `opencode run` 的 token。详见 [tests/e2e/README.md](tests/e2e/README.md)。
 
 ## 路线图
 

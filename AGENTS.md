@@ -1,6 +1,10 @@
 # AGENTS.md — opencode-boost (ocb)
 
-opencode 会话管理 CLI。通过 opencode 官方 CLI 子进程管理会话的命名、切换、分叉。设计文档：`docs/superpowers/specs/2026-04-20-ocb-new.md`。
+opencode 会话管理 CLI。通过 opencode 官方 CLI 子进程管理会话的命名、切换、分叉。
+
+**开发前必读**：`docs/dev-workflow.md` — 完整的开发测试流程、opencode CLI 已知坑、E2E 断言规则。
+
+设计文档：`docs/superpowers/specs/2026-04-20-ocb-new.md`。
 
 ## 不可违反
 
@@ -23,6 +27,14 @@ npm run build && bash tests/e2e/run-e2e.sh
 
 没有配置 lint / typecheck 脚本。
 
+## 开发循环
+
+```
+写代码 → build + 单元测试 → commit + tag → E2E → 有问题？→ 修代码 → ...
+```
+
+完整流程和注意事项见 `docs/dev-workflow.md`。
+
 ## 架构
 
 ```
@@ -39,6 +51,7 @@ src/
 ```
 
 - 数据存储：`$XDG_DATA_HOME/opencode-boost/`（`names.json` / `state.json` / `forks.json`），按项目目录（cwd）隔离
+- `listSessions(cwd)` 在源头过滤 `s.directory === cwd`，所有 command 和 ref 解析只操作当前目录的 session
 - Fork 机制：`opencode run --session <sid> --fork --format json <message>`，超时 120s
 - Session ref 解析顺序：先在当前目录的 names 中查别名，不匹配则当作原始 session ID
 
