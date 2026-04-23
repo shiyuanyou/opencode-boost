@@ -287,6 +287,9 @@ run_phase3() {
   print_section "Phase 3: Compact + Reflog + Rollback"
   source "$TEST_DIR/session-ids.env"
 
+  info "Waiting for sessions to idle before compact..."
+  sleep 10
+
   run_test T26 "reflog shows no entries for new name" project-a \
     "ocb reflog fork-test" 0 \
     --assert "No reflog entries"
