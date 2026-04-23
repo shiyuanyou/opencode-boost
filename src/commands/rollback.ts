@@ -1,4 +1,3 @@
-import { resolveRef } from "../lib/ref.js";
 import { readNames, writeNames, readState, writeState, readReflog, writeReflog } from "../lib/store.js";
 import { shortId } from "../lib/format.js";
 import readline from "readline/promises";

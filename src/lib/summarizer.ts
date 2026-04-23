@@ -2,8 +2,8 @@ import fs from "fs/promises";
 import path from "path";
 import os from "os";
 import { runSession, deleteSession, importSession } from "./opencode.js";
-import { readConfig, writeConfig } from "./store.js";
-import type { ConfigStore, ExportedMessage } from "../types.js";
+import { readConfig } from "./store.js";
+import type { ExportedMessage } from "../types.js";
 
 const COMPACT_PROMPT = `你是一个对话压缩器。请将以下 AI 编程助手对话片段压缩为一段简洁的摘要。
 

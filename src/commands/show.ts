@@ -1,6 +1,6 @@
 import { exportWithRetry } from "../lib/retry.js";
 import { resolveRef } from "../lib/ref.js";
-import { readState, readNames } from "../lib/store.js";
+import { readState } from "../lib/store.js";
 import type { ExportedMessage } from "../types.js";
 
 export interface IndexedMessage extends ExportedMessage {

@@ -38,7 +38,7 @@ export function repairChain(
       resolvedParent = ancestor;
     }
 
-    const sessionId = root.info.sessionID;
+    const sessionId = root!.info.sessionID;
     const newMsgId = generateId("msg_ocb");
     const newPartId = generateId("prt_ocb");
 

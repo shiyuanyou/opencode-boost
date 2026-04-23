@@ -1,5 +1,5 @@
 import { readConfig, writeConfig } from "../lib/store.js";
-import { listModels, type ModelInfo } from "../lib/opencode.js";
+import { listModels } from "../lib/opencode.js";
 
 export async function modelCommand(
   arg: string | undefined,

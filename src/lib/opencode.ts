@@ -163,6 +163,7 @@ export async function injectMessage(sessionId: string, message: string): Promise
 export interface ModelInfo {
   id: string;
   providerID: string;
+  modelID: string;
   name: string;
   cost: number;
 }

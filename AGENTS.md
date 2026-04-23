@@ -91,6 +91,7 @@ src/
 - **Phase 1 ✅** — 查看 + 命名（list, show, attach, checkout, rename, unmanage, delete, origin available）— 24/24 E2E
 - **Phase 2 ✅** — 分叉（`checkout -b`）+ 会话树（`graph`）— 3/3 E2E
 - **Phase 3 ✅** — 压缩（compact, rebase, reflog, rollback, model）— 9/9 E2E（rebase 除外）
-- **Phase 4 🔧** — 跨会话复用（inject, pick）— 命令已实现，无 E2E
+- **Phase 4 ✅** — 跨会话复用（inject, pick）— 命令已实现，无 E2E
+- **Phase 5 🔧** — 绕过 export（直读 SQLite）— 方案确定，见 `docs/superpowers/specs/2026-04-23-bypass-export.md`
 
 共 75 单元测试 + 36 E2E 测试，全部通过。

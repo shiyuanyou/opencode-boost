@@ -1,6 +1,7 @@
 import { resolveRef } from "../lib/ref.js";
-import { exportSession, injectMessage } from "../lib/opencode.js";
-import { readState } from "../lib/store.js";
+import { injectMessage } from "../lib/opencode.js";
+import { readState, readNames } from "../lib/store.js";
+import { exportWithRetry } from "../lib/retry.js";
 import { shortId } from "../lib/format.js";
 import { buildMessageList } from "./show.js";
 import { extractKnowledge, extractMessageTexts } from "../lib/summarizer.js";
@@ -26,7 +27,7 @@ export async function injectCommand(
   }
 
   console.log(`\u23f3 Exporting source session...`);
-  const exported = await exportSession(sourceSid);
+  const exported = await exportWithRetry(sourceSid);
   const messages = buildMessageList(exported.messages);
 
   let content: string;
