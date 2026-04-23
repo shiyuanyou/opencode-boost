@@ -4,7 +4,7 @@ description: >
   ocb (opencode-boost) 开发管线。当用户要求修改 ocb 功能、修 bug、加命令、改命令行为、
   重构 ocb 代码、或提到"修 ocb"、"改 ocb"、"ocb pipeline"、"ocb 管线"时触发。
   也可以用于创建新的实现计划（plan）——当用户说"做个计划"、"规划一下"、"pipeline"时。
-  管线覆盖：写计划 → build + 单元测试 → commit → E2E → 有问题修代码 → 循环。
+  管线覆盖：读实践 → 写计划 → build + 单测 → commit → E2E → 学习 → 循环。
 ---
 
 # ocb Pipeline
@@ -17,22 +17,32 @@ opencode-boost 的标准化开发管线。所有改动走同一套流程。
 - 用户要求"做个计划"或"pipeline"
 - 用户贴了 ocb 的真实使用输出要求修复
 
+## Phase 0: 文档上下文（每次管线启动必做）
+
+在写任何计划或代码之前，先读取实践知识库，确保不重复犯错：
+
+1. **读取 `docs/practices.md`** — 项目已知的 best practices 和 anti-patterns
+2. **检查 `docs/superpowers/plans/` 是否有相关 audit** — 如 UX audit、架构 review
+3. **检查 `AGENTS.md` 的架构约束** — 零直写 DB、ESM-only、execa input 等
+
+这一步确保管线不会偏离项目已积累的认知。
+
 ## 管线流程
 
 ```
-写计划 → build + 单测 → commit → E2E → 修代码 → 循环
+Phase 0 读文档 → Phase 1 写计划 → Phase 2 实现 → Phase 3 build+commit
+→ Phase 4 E2E → Phase 5 学习(写实践) → 循环
 ```
 
-### Phase 1: 计划（可选）
-
-如果改动涉及 2 个以上文件，先写计划。
+### Phase 1: 计划（改动 ≥ 2 文件时必做）
 
 1. 在 `docs/superpowers/plans/` 下创建 `YYYY-MM-DD-<name>.md`
 2. 计划格式参考已有文件，包含：
    - 文件结构表（哪些文件要改/创建）
    - 按 Task 拆分，每个 Task 有完整的代码（零 placeholder）
    - 每个 Task 包含：写测试 → 验证失败 → 写实现 → 验证通过 → commit
-3. 计划写完问用户选择执行方式（subagent-driven 或 inline）
+3. 计划开头标注从 `docs/practices.md` 引用了哪些实践
+4. 计划写完问用户选择执行方式（subagent-driven 或 inline）
 
 ### Phase 2: 实现 + 单元测试
 
@@ -61,7 +71,7 @@ npm run build && npm test
 git add -A && git commit -m "<type>: <描述>"
 ```
 
-commit type：`feat`（新功能）、`fix`（修 bug）、`refactor`（重构）、`test`（补测试）
+commit type：`feat`（新功能）、`fix`（修 bug）、`refactor`（重构）、`test`（补测试）、`docs`（文档）
 
 ### Phase 4: E2E（消耗 token，约 7 次 opencode run）
 
@@ -92,11 +102,42 @@ E2E: PASS/FAIL (N/M passed)
 FAILURES: [test ID + 错误摘要，或 "none"]
 ```
 
-### Phase 5: 推送（用户确认后）
+### Phase 5: 学习 — 写实践（每次 debug 后必做）
+
+当管线中遇到以下情况时，将新认知写入 `docs/practices.md`：
+
+**写入 Best Practices 的时机**：
+- 发现了一个好的设计模式并验证有效
+- 从参考工具（git/gh/docker）中学到了一个可迁移的做法
+
+**写入 Anti-Patterns 的时机**：
+- 踩了一个坑并花了 > 5 分钟才定位
+- 发现现有代码有一个反复导致问题的模式
+- 代码 review 中指出的问题
+
+**写入格式**（每条一行，极简）：
+- Best Practice：`- <具体做法>（<原因>）`
+- Anti-Pattern：`- <错误做法>（<后果>）`
+
+**去重**：写入前先 grep `docs/practices.md`，已存在的不再重复。
+
+### Phase 6: 推送（用户确认后）
 
 ```bash
 git push && git push --tags
 ```
+
+## Subagent 上下文注入
+
+当使用 subagent 执行 Task 时，每个 subagent prompt 必须包含：
+
+1. **项目根目录路径**
+2. **本 Task 涉及的文件列表及变更类型**
+3. **相关的 practices 引用**（从 `docs/practices.md` 中 grep 关键词）
+4. **验证命令**：`npm run build && npm test`
+5. **不要 commit** — 主 agent 统一 commit
+
+这样 subagent 不需要自己翻找文档，直接获得聚焦的上下文。
 
 ## 关键架构约束
 
@@ -109,10 +150,20 @@ git push && git push --tags
 
 | 用途 | 文件 |
 |------|------|
+| 实践知识库 | `docs/practices.md` |
 | 开发流程 | `docs/dev-workflow.md` |
 | 架构说明 | `AGENTS.md` |
+| UX 审计 | `docs/superpowers/plans/2026-04-23-ux-audit.md` |
+| 实现计划 | `docs/superpowers/plans/` |
 | E2E 脚本 | `tests/e2e/run-e2e.sh` + `tests/e2e/lib.sh` |
 | opencode 交互 | `src/lib/opencode.ts` |
 | 数据存储 | `src/lib/store.ts` |
 | 命令注册 | `src/index.ts` |
 | 类型定义 | `src/types.ts` |
+
+## 管线内文档维护规则
+
+1. `docs/practices.md` — 管线运行中持续更新，不单独 commit，随最近的相关 commit 一起提交
+2. `docs/dev-workflow.md` — 测试数量变化时同步更新
+3. `AGENTS.md` — 架构变化时同步更新
+4. `docs/superpowers/plans/*.md` — 计划完成后标记完成状态，不删除（保留历史）

@@ -2,7 +2,9 @@
 
 opencode 会话管理 CLI。通过 opencode 官方 CLI 子进程管理会话的命名、切换、分叉、压缩和跨会话复用。
 
-**开发前必读**：`docs/dev-workflow.md` — 完整的开发测试流程、opencode CLI 已知坑、E2E 断言规则。
+**开发前必读**：
+- `docs/dev-workflow.md` — 开发测试流程、opencode CLI 已知坑、E2E 断言规则
+- `docs/practices.md` — 从真实开发中提炼的 best practices 和 anti-patterns（管线每次运行时读取）
 
 设计文档：`docs/superpowers/specs/2026-04-20-ocb-new.md`。
 
