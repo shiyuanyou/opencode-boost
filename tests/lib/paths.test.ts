@@ -23,4 +23,10 @@ describe("paths", () => {
     expect(dir).toBe("/custom/config/opencode-boost");
     delete process.env.XDG_CONFIG_HOME;
   });
+
+  it("falls back to ~/.config when XDG_CONFIG_HOME not set", () => {
+    delete process.env.XDG_CONFIG_HOME;
+    const dir = getConfigDir();
+    expect(dir).toBe(path.join(os.homedir(), ".config/opencode-boost"));
+  });
 });

@@ -1,6 +1,20 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
 import type { TreeNode } from "../../src/commands/graph.js";
 
+vi.mock("../../src/lib/opencode.js", () => ({
+  listSessions: vi.fn(),
+  exportSession: vi.fn(),
+}));
+
+vi.mock("../../src/lib/store.js", () => ({
+  readNames: vi.fn(),
+  readForks: vi.fn(),
+  readState: vi.fn(),
+}));
+
+import { listSessions, exportSession } from "../../src/lib/opencode.js";
+import { readNames, readForks, readState } from "../../src/lib/store.js";
+
 describe("graph tree rendering", () => {
   let lines: string[];
 
@@ -123,5 +137,48 @@ describe("graph tree rendering", () => {
     expect(lines).toHaveLength(1);
     expect(lines[0]).toContain("(ses_abc12345678)");
     expect(lines[0]).not.toContain("null");
+  });
+});
+
+describe("graphCommand", () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+    vi.spyOn(console, "log").mockImplementation(() => {});
+  });
+
+  it("shows message when no managed sessions", async () => {
+    vi.mocked(readNames).mockResolvedValue({ "/proj": {} });
+    vi.mocked(readForks).mockResolvedValue({});
+    vi.mocked(readState).mockResolvedValue({});
+    vi.mocked(listSessions).mockResolvedValue([]);
+
+    const { graphCommand } = await import("../../src/commands/graph.js");
+    await graphCommand("/proj");
+
+    expect(console.log).toHaveBeenCalledWith(expect.stringContaining("No managed sessions"));
+  });
+
+  it("calls exportSession for parent sessions to resolve fork positions", async () => {
+    vi.mocked(readNames).mockResolvedValue({ "/proj": { parent: "ses_p", child: "ses_c" } });
+    vi.mocked(readForks).mockResolvedValue({
+      "/proj": { ses_c: { parentSessionId: "ses_p", parentMessageId: "m2", timestamp: 1000 } },
+    });
+    vi.mocked(readState).mockResolvedValue({ "/proj": { current: "child" } });
+    vi.mocked(listSessions).mockResolvedValue([
+      { id: "ses_p", title: "P", updated: 1000, created: 900, projectId: "p1", directory: "/proj" },
+      { id: "ses_c", title: "C", updated: 2000, created: 900, projectId: "p1", directory: "/proj" },
+    ]);
+    vi.mocked(exportSession).mockResolvedValue({
+      info: { id: "ses_p" } as any,
+      messages: [
+        { info: { id: "m1", sessionID: "ses_p", parentID: undefined, role: "user", time: { created: 1000 } }, parts: [] },
+        { info: { id: "m2", sessionID: "ses_p", parentID: "m1", role: "assistant", time: { created: 1000 } }, parts: [] },
+      ],
+    });
+
+    const { graphCommand } = await import("../../src/commands/graph.js");
+    await graphCommand("/proj");
+
+    expect(exportSession).toHaveBeenCalledWith("ses_p");
   });
 });
