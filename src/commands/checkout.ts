@@ -1,4 +1,5 @@
 import { resolveRef } from "../lib/ref.js";
+import { getCurrentSession } from "../lib/opencode.js";
 import { readState, writeState, readNames, writeNames, readForks, writeForks } from "../lib/store.js";
 import { forkSession } from "../lib/opencode.js";
 import { exportWithRetry } from "../lib/retry.js";
@@ -7,14 +8,26 @@ import { buildMessageList } from "./show.js";
 import type { ForkInfo } from "../types.js";
 
 export async function checkoutCommand(
-  ref: string,
+  ref: string | undefined,
   cwd: string,
   opts?: { b?: string; model?: string }
 ): Promise<void> {
   if (opts?.b) {
-    return checkoutFork(opts.b, ref, cwd, opts.model);
+    return checkoutFork(opts.b, ref ?? ".", cwd, opts.model);
   }
-  return checkoutSwitch(ref, cwd);
+  const resolvedRef = ref ?? await resolveToCurrentSession(cwd);
+  return checkoutSwitch(resolvedRef, cwd);
+}
+
+async function resolveToCurrentSession(cwd: string): Promise<string> {
+  const activeSid = await getCurrentSession();
+  if (activeSid) return activeSid;
+
+  const state = await readState();
+  const current = state[cwd]?.current;
+  if (current) return current;
+
+  throw new Error("No current session. Specify a session ref or switch with opencode first.");
 }
 
 async function checkoutSwitch(ref: string, cwd: string): Promise<void> {

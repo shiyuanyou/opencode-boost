@@ -15,6 +15,7 @@ import { compactCommand } from "./commands/compact.js";
 import { rebaseCommand } from "./commands/rebase.js";
 import { injectCommand } from "./commands/inject.js";
 import { pickCommand } from "./commands/pick.js";
+import { openCommand } from "./commands/open.js";
 
 function action(fn: (...args: unknown[]) => Promise<void>) {
   return async (...args: unknown[]) => {
@@ -76,11 +77,11 @@ program
   }));
 
 program
-  .command("checkout <ref>")
-  .description("Switch active session")
+  .command("checkout [ref]")
+  .description("Switch active session (defaults to opencode's current)")
   .option("-b <name>", "Fork from ref into new named session")
   .option("--model <model>", "Model to use for fork")
-  .action(action(async (ref: string, opts: { b?: string; model?: string }) => {
+  .action(action(async (ref: string | undefined, opts: { b?: string; model?: string }) => {
     await checkoutCommand(ref, process.cwd(), opts);
   }));
 
@@ -163,6 +164,13 @@ program
   .requiredOption("-m <nums>", "Message numbers to pick (comma-separated)")
   .action(action(async (ref: string, opts: { m: string }) => {
     await pickCommand(ref, process.cwd(), opts);
+  }));
+
+program
+  .command("open [ref]")
+  .description("Open session in opencode (defaults to current)")
+  .action(action(async (ref: string | undefined) => {
+    await openCommand(ref, process.cwd());
   }));
 
 program.parseAsync().catch((err: unknown) => {
