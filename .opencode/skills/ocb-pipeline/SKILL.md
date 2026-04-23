@@ -42,7 +42,7 @@ Phase 0 读文档 → Phase 1 写计划 → Phase 2 实现 → Phase 3 build+com
    - 按 Task 拆分，每个 Task 有完整的代码（零 placeholder）
    - 每个 Task 包含：写测试 → 验证失败 → 写实现 → 验证通过 → commit
 3. 计划开头标注从 `docs/practices.md` 引用了哪些实践
-4. 计划写完问用户选择执行方式（subagent-driven 或 inline）
+4. 计划写完立即执行，默认使用 subagent-driven 方式，不暂停等待用户选择
 
 ### Phase 2: 实现 + 单元测试
 
@@ -121,7 +121,7 @@ FAILURES: [test ID + 错误摘要，或 "none"]
 
 **去重**：写入前先 grep `docs/practices.md`，已存在的不再重复。
 
-### Phase 6: 推送（用户确认后）
+### Phase 6: 推送（管线自动执行）
 
 ```bash
 git push && git push --tags
