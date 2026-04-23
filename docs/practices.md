@@ -14,6 +14,8 @@
 - 新命令模式：`src/commands/<cmd>.ts` → `src/index.ts` 注册 → `tests/commands/<cmd>.test.ts`
 - mock 边界：mock `opencode.ts` 和 `store.ts`（外部依赖），不 mock 纯函数
 - 活跃会话 export 用 `exportWithRetry()`，不裸调 `exportSession`
+- 所有需要读取会话数据的命令必须用 `getSessionData()`，不直接调 `exportWithRetry` 或 `exportSession`（统一访问层，先 db-reader fallback export）
+- native addon（如 better-sqlite3）必须在 tsup external 中声明，否则打包失败
 - `tsconfig.json` 必须有 `"types": ["node"]`
 - 版本号从 `package.json` 动态读取，不硬编码
 - 测试顺序：先写测试确认 fail → 写实现确认 pass
@@ -36,3 +38,4 @@
 - 跨语言混杂（CLI 英文 + 嵌入文本中文）无开关
 - 在 list/show 等高频命令路径上调用 `opencode -c`（实测 5-10s 阻塞）
 - 高频命令串行调用多个 opencode 子进程（应 Promise.all 并行）
+- 直接调 `exportSession` 或 `exportWithRetry`（应通过 `getSessionData()` 统一访问层）
