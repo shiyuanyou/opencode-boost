@@ -1,5 +1,6 @@
-import { exportSession } from "../lib/opencode.js";
+import { exportWithRetry } from "../lib/retry.js";
 import { resolveRef } from "../lib/ref.js";
+import { readState, readNames } from "../lib/store.js";
 import type { ExportedMessage } from "../types.js";
 
 export interface IndexedMessage extends ExportedMessage {
@@ -38,9 +39,17 @@ function countToolCalls(msg: ExportedMessage): number {
   return msg.parts.filter((p) => p.type === "tool").length;
 }
 
-export async function showCommand(ref: string, cwd: string, opts: { m?: string; json?: boolean }): Promise<void> {
-  const sid = await resolveRef(ref, cwd);
-  const exported = await exportSession(sid);
+async function resolveToCurrent(cwd: string): Promise<string> {
+  const state = await readState();
+  const current = state[cwd]?.current;
+  if (!current) throw new Error("No current session. Specify a session ref or use `ocb checkout` first.");
+  return current;
+}
+
+export async function showCommand(ref: string | undefined, cwd: string, opts: { m?: string; json?: boolean }): Promise<void> {
+  const resolved = ref ?? await resolveToCurrent(cwd);
+  const sid = await resolveRef(resolved, cwd);
+  const exported = await exportWithRetry(sid);
   const list = buildMessageList(exported.messages);
 
   if (opts.json) {

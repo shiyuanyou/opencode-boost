@@ -20,6 +20,8 @@
 - commit 顺序：unit test pass → commit → E2E → push
 - shell completion 依赖 `--names` 或 `--json` 极简输出
 - prompt 集成命令必须 fast（< 50ms）和 zero side-effect
+- `opencode -c` 实测 5-10s+，不得阻塞任何高频命令（list/show）的路径
+- 所有需要 export session 的命令必须用 `exportWithRetry`，不裸调 `exportSession`
 - 颜色输出检测 `NO_COLOR` 环境变量和 `--no-color` flag
 
 ## Anti-Patterns
@@ -32,3 +34,5 @@
 - 长时间操作无进度提示
 - 错误信息只报 "Error: xxx" 不给修复建议
 - 跨语言混杂（CLI 英文 + 嵌入文本中文）无开关
+- 在 list/show 等高频命令路径上调用 `opencode -c`（实测 5-10s 阻塞）
+- 高频命令串行调用多个 opencode 子进程（应 Promise.all 并行）

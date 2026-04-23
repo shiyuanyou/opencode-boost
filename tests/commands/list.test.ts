@@ -10,13 +10,8 @@ vi.mock("../../src/lib/store.js", () => ({
   readState: vi.fn(),
 }));
 
-vi.mock("../../src/lib/sync.js", () => ({
-  syncStateWithOpencode: vi.fn(),
-}));
-
 import { listSessions } from "../../src/lib/opencode.js";
 import { readNames, readState } from "../../src/lib/store.js";
-import { syncStateWithOpencode } from "../../src/lib/sync.js";
 
 const mockSessions = [
   { id: "ses_aaa", title: "Feature A", updated: 3000, created: 1000, projectId: "p1", directory: "/proj" },
@@ -27,7 +22,6 @@ const mockSessions = [
 describe("listCommand", () => {
   beforeEach(() => {
     vi.clearAllMocks();
-    vi.mocked(syncStateWithOpencode).mockResolvedValue();
   });
 
   it("shows all sessions, marking managed ones with name", async () => {
@@ -81,15 +75,5 @@ describe("listCommand", () => {
     console.log = origLog;
 
     expect(logs.some((l) => l.includes("No sessions found"))).toBe(true);
-  });
-
-  it("calls syncStateWithOpencode before listing", async () => {
-    vi.mocked(listSessions).mockResolvedValue([]);
-    vi.mocked(readNames).mockResolvedValue({});
-    vi.mocked(readState).mockResolvedValue({});
-
-    await listCommand("/proj");
-
-    expect(syncStateWithOpencode).toHaveBeenCalledWith("/proj");
   });
 });

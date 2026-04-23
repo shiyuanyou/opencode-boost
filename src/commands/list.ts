@@ -1,11 +1,8 @@
 import { listSessions } from "../lib/opencode.js";
 import { readNames, readState } from "../lib/store.js";
-import { syncStateWithOpencode } from "../lib/sync.js";
 import { formatSession, relativeTime, shortId } from "../lib/format.js";
 
 export async function listCommand(cwd: string): Promise<void> {
-  await syncStateWithOpencode(cwd);
-
   const [sessions, names, state] = await Promise.all([
     listSessions(cwd),
     readNames(),

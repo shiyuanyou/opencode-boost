@@ -59,11 +59,11 @@ program
   }));
 
 program
-  .command("show <ref>")
-  .description("Show session message list")
+  .command("show [ref]")
+  .description("Show session message list (defaults to current session)")
   .option("-m <nums>", "Show specific message(s) detail, comma-separated")
   .option("--json", "Output raw JSON")
-  .action(action(async (ref: string, opts: { m?: string; json?: boolean }) => {
+  .action(action(async (ref: string | undefined, opts: { m?: string; json?: boolean }) => {
     await showCommand(ref, process.cwd(), opts);
   }));
 
