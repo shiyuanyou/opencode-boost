@@ -66,7 +66,7 @@ npm run test:watch     # 监听模式
 - 从 `src/` 直接 import，路径加 `.js` 后缀
 - 不需要 opencode，纯解析逻辑测试
 - 改了函数签名必须补测试——特别是 `src/lib/` 下的函数
-- 当前 57 个测试，覆盖：chain（8）、ref（4）、opencode（14）、attach（4）、graph（4）、store（6）、paths（3）、show（2）、reflog（2）、summarizer（2）
+- 当前 75 个测试，覆盖：chain（8）、opencode（17）、attach（7）、sync（4）、store（6）、graph（4）、ref（4）、list（3）、summarizer（10）、retry（3）、show（4）、paths（3）、reflog（2）
 
 ---
 
@@ -79,7 +79,7 @@ npm run build && bash tests/e2e/run-e2e.sh
 - 在 `/tmp` 下创建隔离的 git 项目和 session，测试完自动清理
 - 前置条件：opencode 已安装且已登录（需要 API key）
 - 脚本：`tests/e2e/run-e2e.sh`，辅助函数：`tests/e2e/lib.sh`
-- 当前 34 个测试（Phase 1: 22 + Phase 2: 3 + Phase 3: 9）
+- 当前 36 个测试（Phase 1: 24 + Phase 2: 3 + Phase 3: 9）
 
 ### 写新 E2E 用例的规则
 
@@ -114,11 +114,11 @@ run_test ID "描述" cwd cmd exit_code --assert "模式" --assert-not "模式" -
 
 | ID | 测试项 | Phase |
 |----|--------|-------|
-| T01 | `origin available` 列出所有未管理会话 | 1 |
-| T02 | `attach` 命名最近的会话 | 1 |
-| T03 | `attach -s` 命名指定会话 | 1 |
-| T04 | `list` 显示已管理会话 | 1 |
-| T05 | `origin available` 过滤已管理会话 | 1 |
+| T01 | `origin available` 显示废弃提示 | 1 |
+| T02 | `attach -s` 命名指定会话 | 1 |
+| T03 | `attach -s` 命名第二个会话 | 1 |
+| T04 | `list` 显示 managed + unmanaged 会话 | 1 |
+| T05 | `origin available` 废弃提示不显示 session | 1 |
 | T06 | `show` 显示消息列表 | 1 |
 | T07 | `show -m` 显示指定消息详情 | 1 |
 | T08 | `checkout` 切换活跃会话 | 1 |
@@ -128,15 +128,17 @@ run_test ID "描述" cwd cmd exit_code --assert "模式" --assert-not "模式" -
 | T12 | `show` 用新名称访问 | 1 |
 | T13 | `show` 用原始 session-id 访问 | 1 |
 | T14 | `unmanage` 移除管理 | 1 |
-| T15 | `list` 不再显示已移除会话 | 1 |
-| T16 | `origin available` 显示已移除的会话 | 1 |
-| T17 | 跨项目隔离：project-b 看不到 project-a | 1 |
-| T17b | project-b 独立 attach | 1 |
+| T15 | `list` 仍显示 unmanaged 会话 | 1 |
+| T16 | `origin available` 废弃提示 | 1 |
+| T17 | 跨项目隔离：project-b 只看自己的 session | 1 |
+| T17b | project-b 无 `-s` attach 最新 session | 1 |
 | T18 | project-b 独立 list | 1 |
 | T19 | project-b 独立 show | 1 |
 | T20 | `delete -f` 彻底删除会话 | 1 |
-| T21 | 删除后不再出现 | 1 |
+| T21 | `origin available` 删除后废弃提示 | 1 |
 | T22 | 不存在的 ref 返回错误 | 1 |
+| T22b | `attach --all` 自动命名所有 unmanaged | 1 |
+| T22c | `list` 在 `--all` 后不显示 unmanaged | 1 |
 | T23 | `checkout -b` 从命名会话 fork | 2 |
 | T24 | fork 后出现在 list | 2 |
 | T25 | `graph` 显示 fork 树 | 2 |
@@ -156,13 +158,14 @@ run_test ID "描述" cwd cmd exit_code --assert "模式" --assert-not "模式" -
 | 坑 | 表现 | 影响 / 解决方案 |
 |---|---|---|
 | 非项目目录返回全量 session | 在非 git 目录 `session list --format json` 返回所有 `projectId: "global"` 的 session | ocb 已在 `listSessions(cwd)` 源头过滤，不影响 |
-| 活跃会话 export 截断 | 当前正在使用的会话 `opencode export` 返回不完整 JSON | `show`、`checkout -b`、`compact` 对活跃会话可能失败；已加 3 次重试 + 5s 退避 |
+| 活跃会话 export 截断 | 当前正在使用的会话 `opencode export` 返回不完整 JSON | `show`、`checkout -b`、`compact` 对活跃会话可能失败；已加 5 次重试 + 8s 退避，并用 `exportWithRetry` |
 | session title 不是消息内容 | title 是 `New session - <ISO timestamp>` | 断言用 short ID，不要断言 title |
 | NDJSON 中 SID 的字段路径 | v1.14.18 使用 `{"type":"step_start","sessionID":"ses_..."}`，不是旧的 `{"type":"session","session":{"id":"ses_..."}}` | bash 提取用 `grep -o 'ses_[a-zA-Z0-9]*'` 兜底；TS 解析两格式都支持 |
 | macOS 无 `timeout` 命令 | `create_session` 不能用 `timeout` 包裹 | 不加 timeout，依赖 opencode 自身结束 |
 | **execa 必须加 `input: ""`** | opencode 在空 stdin pipe 上阻塞等待输入，导致子进程永不退出 | 所有 `execa("opencode", [...])` 必须带 `{ input: "" }` |
 | `opencode import` 校验严格 | import 要求 id/slug/directory/title/version/time 存在，且每条消息需要 `agent`(string) + `model`(object) + `sessionID`(string) | `rebuildExportJson` 生成新 `ses_ocb_` ID 并更新所有 sessionID；`repairChain` 摘要消息补上 agent/model 字段 |
 | import 输出非 JSON | `opencode import` 输出 `Imported session: ses_xxx` 纯文本 | `importSession` 用正则匹配，不走 JSON 解析 |
+| **`opencode -c` 慢（5-10s+）** | `getCurrentSession()` 检测活跃 session，实测可卡住 5s+ | 不得在高频命令（list）路径上调用；checkout 等低频命令可用 |
 
 ---
 
@@ -181,11 +184,13 @@ src/
   index.ts              # commander 入口
   commands/<cmd>.ts     # 各命令，接收 cwd 参数
   lib/
-    opencode.ts         # opencode CLI 调用 + 输出解析（listSessions, exportSession, forkSession, importSession, runSession, injectMessage, deleteSession, listModels）
+    opencode.ts         # opencode CLI 调用 + 输出解析（listSessions, exportSession, forkSession, importSession, runSession, injectMessage, deleteSession, listModels, getCurrentSession）
     store.ts            # JSON 文件读写（names.json, state.json, forks.json, reflog.json, config.json）
     ref.ts              # 别名 → session-id 解析（先查 names，再当 raw id，都限定在 cwd 内）
-    format.ts           # shortId, relativeTime, formatSession
+    format.ts           # shortId, relativeTime, formatSession, formatUnmanagedSession
     paths.ts            # $XDG_DATA_HOME/opencode-boost + $XDG_CONFIG_HOME/opencode-boost
+    sync.ts             # 与 opencode 实际状态同步（syncStateWithOpencode）
+    retry.ts            # Export with retry+backoff for active session truncation (5 retries, 8s delay)
     chain.ts            # parentID 链修复算法（repairChain, rebuildExportJson）
     summarizer.ts       # LLM 摘要引擎（summarizeMessages, extractKnowledge, extractMessageTexts）
   types.ts              # SessionInfo, ExportedSession, Store, ReflogStore, ConfigStore 类型
