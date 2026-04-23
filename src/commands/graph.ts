@@ -1,6 +1,6 @@
 import { readNames, readForks, readState } from "../lib/store.js";
 import { listSessions } from "../lib/opencode.js";
-import { exportWithRetry } from "../lib/retry.js";
+import { getSessionData } from "../lib/data-access.js";
 import { shortId, relativeTime } from "../lib/format.js";
 import { buildMessageList } from "./show.js";
 import type { ForkInfo } from "../types.js";
@@ -58,7 +58,7 @@ export async function graphCommand(cwd: string): Promise<void> {
   const messageIndexCache = new Map<string, Map<string, number>>();
   for (const parentSid of parentSidsNeeded) {
     try {
-      const exported = await exportWithRetry(parentSid);
+      const exported = await getSessionData(parentSid);
       const messages = buildMessageList(exported.messages);
       const index = new Map(messages.map((m) => [m.info.id, m.seq]));
       messageIndexCache.set(parentSid, index);

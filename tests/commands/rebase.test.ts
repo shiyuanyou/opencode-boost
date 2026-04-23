@@ -4,7 +4,10 @@ vi.mock("../../src/lib/opencode.js", () => ({
   forkSession: vi.fn(),
   deleteSession: vi.fn(),
   importSession: vi.fn(),
-  exportSession: vi.fn(),
+}));
+
+vi.mock("../../src/lib/data-access.js", () => ({
+  getSessionData: vi.fn(),
 }));
 
 vi.mock("../../src/lib/store.js", () => ({
@@ -37,7 +40,8 @@ vi.mock("fs/promises", () => {
   return { ...fns, default: fns };
 });
 
-import { forkSession, deleteSession, importSession, exportSession } from "../../src/lib/opencode.js";
+import { forkSession, deleteSession, importSession } from "../../src/lib/opencode.js";
+import { getSessionData } from "../../src/lib/data-access.js";
 import { readNames, readState, readReflog } from "../../src/lib/store.js";
 import { resolveRef } from "../../src/lib/ref.js";
 import { rebaseCommand } from "../../src/commands/rebase.js";
@@ -63,7 +67,7 @@ describe("rebaseCommand", () => {
     vi.mocked(resolveRef).mockResolvedValue("ses_abc");
     vi.mocked(readNames).mockResolvedValue({ "/proj": { "my-sess": "ses_abc" } });
     vi.mocked(forkSession).mockResolvedValue({ sessionId: "ses_fork", text: "" });
-    vi.mocked(exportSession).mockResolvedValue({
+    vi.mocked(getSessionData).mockResolvedValue({
       info: { id: "ses_fork" } as any,
       messages: [msg("m1", undefined, "user", "hello"), msg("m2", "m1", "assistant", "hi")],
     });
@@ -71,7 +75,7 @@ describe("rebaseCommand", () => {
     await rebaseCommand("my-sess", "/proj", {});
 
     expect(forkSession).toHaveBeenCalledWith("ses_abc", "ocb-rebase-fork", undefined);
-    expect(exportSession).toHaveBeenCalledWith("ses_fork");
+    expect(getSessionData).toHaveBeenCalledWith("ses_fork");
     expect(importSession).not.toHaveBeenCalled();
     expect(deleteSession).toHaveBeenCalledWith("ses_fork");
   });
@@ -80,7 +84,7 @@ describe("rebaseCommand", () => {
     vi.mocked(resolveRef).mockResolvedValue("ses_abc");
     vi.mocked(readNames).mockResolvedValue({ "/proj": {} });
     vi.mocked(forkSession).mockResolvedValue({ sessionId: "ses_fork", text: "" });
-    vi.mocked(exportSession).mockResolvedValue({
+    vi.mocked(getSessionData).mockResolvedValue({
       info: { id: "ses_fork" } as any,
       messages: [],
     });

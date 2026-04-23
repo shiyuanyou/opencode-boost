@@ -1,7 +1,7 @@
 import { resolveRef } from "../lib/ref.js";
 import { injectMessage } from "../lib/opencode.js";
 import { readState, readNames } from "../lib/store.js";
-import { exportWithRetry } from "../lib/retry.js";
+import { getSessionData } from "../lib/data-access.js";
 import { shortId } from "../lib/format.js";
 import { buildMessageList } from "./show.js";
 import { extractMessageTexts } from "../lib/summarizer.js";
@@ -21,7 +21,7 @@ export async function pickCommand(
   const targetSid = dirNames[currentName] ?? currentName;
 
   console.log(`\u23f3 Exporting source session...`);
-  const exported = await exportWithRetry(sourceSid);
+  const exported = await getSessionData(sourceSid);
   const messages = buildMessageList(exported.messages);
 
   const nums = opts.m.split(",").map((n) => parseInt(n.trim(), 10));

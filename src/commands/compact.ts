@@ -4,7 +4,7 @@ import os from "os";
 import { resolveRef } from "../lib/ref.js";
 import { readNames, writeNames, readState, writeState, readReflog, writeReflog } from "../lib/store.js";
 import { forkSession, deleteSession, importSession } from "../lib/opencode.js";
-import { exportWithRetry } from "../lib/retry.js";
+import { getSessionData } from "../lib/data-access.js";
 import { shortId } from "../lib/format.js";
 import { buildMessageList } from "./show.js";
 import { summarizeMessages } from "../lib/summarizer.js";
@@ -33,7 +33,7 @@ export async function compactCommand(
 
   try {
     console.log(`\u23f3 Exporting forked session...`);
-    const exported = await exportWithRetry(forkSid);
+    const exported = await getSessionData(forkSid);
     const messages = buildMessageList(exported.messages);
 
     if (from < 1 || to > messages.length || from > to) {

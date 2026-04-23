@@ -1,4 +1,4 @@
-import { exportWithRetry } from "../lib/retry.js";
+import { getSessionData } from "../lib/data-access.js";
 import { resolveRef } from "../lib/ref.js";
 import { readState } from "../lib/store.js";
 import type { ExportedMessage } from "../types.js";
@@ -49,7 +49,7 @@ async function resolveToCurrent(cwd: string): Promise<string> {
 export async function showCommand(ref: string | undefined, cwd: string, opts: { m?: string; json?: boolean }): Promise<void> {
   const resolved = ref ?? await resolveToCurrent(cwd);
   const sid = await resolveRef(resolved, cwd);
-  const exported = await exportWithRetry(sid);
+  const exported = await getSessionData(sid);
   const list = buildMessageList(exported.messages);
 
   if (opts.json) {

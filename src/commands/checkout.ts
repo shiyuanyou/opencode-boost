@@ -2,7 +2,7 @@ import { resolveRef } from "../lib/ref.js";
 import { getCurrentSession } from "../lib/opencode.js";
 import { readState, writeState, readNames, writeNames, readForks, writeForks } from "../lib/store.js";
 import { forkSession } from "../lib/opencode.js";
-import { exportWithRetry } from "../lib/retry.js";
+import { getSessionData } from "../lib/data-access.js";
 import { shortId } from "../lib/format.js";
 import { buildMessageList } from "./show.js";
 import type { ForkInfo } from "../types.js";
@@ -72,7 +72,7 @@ async function checkoutFork(name: string, parentRef: string, cwd: string, model?
   const parentLabel = Object.entries(dirNames).find(([, s]) => s === parentSid)?.[0] ?? shortId(parentSid);
   console.log(`\u23f3 Forking from ${parentLabel} (${shortId(parentSid)})...`);
 
-  const parentExport = await exportWithRetry(parentSid);
+  const parentExport = await getSessionData(parentSid);
 
   const parentMessages = buildMessageList(parentExport.messages);
   const lastMsgId = parentMessages.length > 0 ? parentMessages[parentMessages.length - 1].info.id : "";

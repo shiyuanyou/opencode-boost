@@ -3,7 +3,10 @@ import type { TreeNode } from "../../src/commands/graph.js";
 
 vi.mock("../../src/lib/opencode.js", () => ({
   listSessions: vi.fn(),
-  exportSession: vi.fn(),
+}));
+
+vi.mock("../../src/lib/data-access.js", () => ({
+  getSessionData: vi.fn(),
 }));
 
 vi.mock("../../src/lib/store.js", () => ({
@@ -12,7 +15,8 @@ vi.mock("../../src/lib/store.js", () => ({
   readState: vi.fn(),
 }));
 
-import { listSessions, exportSession } from "../../src/lib/opencode.js";
+import { listSessions } from "../../src/lib/opencode.js";
+import { getSessionData } from "../../src/lib/data-access.js";
 import { readNames, readForks, readState } from "../../src/lib/store.js";
 
 describe("graph tree rendering", () => {
@@ -158,7 +162,7 @@ describe("graphCommand", () => {
     expect(console.log).toHaveBeenCalledWith(expect.stringContaining("No managed sessions"));
   });
 
-  it("calls exportSession for parent sessions to resolve fork positions", async () => {
+  it("calls getSessionData for parent sessions to resolve fork positions", async () => {
     vi.mocked(readNames).mockResolvedValue({ "/proj": { parent: "ses_p", child: "ses_c" } });
     vi.mocked(readForks).mockResolvedValue({
       "/proj": { ses_c: { parentSessionId: "ses_p", parentMessageId: "m2", timestamp: 1000 } },
@@ -168,7 +172,7 @@ describe("graphCommand", () => {
       { id: "ses_p", title: "P", updated: 1000, created: 900, projectId: "p1", directory: "/proj" },
       { id: "ses_c", title: "C", updated: 2000, created: 900, projectId: "p1", directory: "/proj" },
     ]);
-    vi.mocked(exportSession).mockResolvedValue({
+    vi.mocked(getSessionData).mockResolvedValue({
       info: { id: "ses_p" } as any,
       messages: [
         { info: { id: "m1", sessionID: "ses_p", parentID: undefined, role: "user", time: { created: 1000 } }, parts: [] },
@@ -179,6 +183,6 @@ describe("graphCommand", () => {
     const { graphCommand } = await import("../../src/commands/graph.js");
     await graphCommand("/proj");
 
-    expect(exportSession).toHaveBeenCalledWith("ses_p");
+    expect(getSessionData).toHaveBeenCalledWith("ses_p");
   });
 });

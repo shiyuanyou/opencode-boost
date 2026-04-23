@@ -4,8 +4,8 @@ vi.mock("../../src/lib/opencode.js", () => ({
   injectMessage: vi.fn(),
 }));
 
-vi.mock("../../src/lib/retry.js", () => ({
-  exportWithRetry: vi.fn(),
+vi.mock("../../src/lib/data-access.js", () => ({
+  getSessionData: vi.fn(),
 }));
 
 vi.mock("../../src/lib/store.js", () => ({
@@ -23,7 +23,7 @@ vi.mock("../../src/lib/summarizer.js", () => ({
 }));
 
 import { injectMessage } from "../../src/lib/opencode.js";
-import { exportWithRetry } from "../../src/lib/retry.js";
+import { getSessionData } from "../../src/lib/data-access.js";
 import { readState, readNames } from "../../src/lib/store.js";
 import { resolveRef } from "../../src/lib/ref.js";
 import { extractKnowledge, extractMessageTexts } from "../../src/lib/summarizer.js";
@@ -46,7 +46,7 @@ describe("injectCommand", () => {
     vi.mocked(resolveRef)
       .mockResolvedValueOnce("ses_src")
       .mockResolvedValueOnce("ses_tgt");
-    vi.mocked(exportWithRetry).mockResolvedValue({
+    vi.mocked(getSessionData).mockResolvedValue({
       info: { id: "ses_src" } as any,
       messages: [msg("m1", undefined, "user", "hello")],
     });
@@ -57,7 +57,7 @@ describe("injectCommand", () => {
 
     expect(resolveRef).toHaveBeenCalledWith("source", "/proj");
     expect(resolveRef).toHaveBeenCalledWith("target", "/proj");
-    expect(exportWithRetry).toHaveBeenCalledWith("ses_src");
+    expect(getSessionData).toHaveBeenCalledWith("ses_src");
     expect(extractKnowledge).toHaveBeenCalledTimes(1);
     expect(injectMessage).toHaveBeenCalledWith("ses_tgt", expect.stringContaining("knowledge summary"));
   });
@@ -66,7 +66,7 @@ describe("injectCommand", () => {
     vi.mocked(resolveRef)
       .mockResolvedValueOnce("ses_src")
       .mockResolvedValueOnce("ses_tgt");
-    vi.mocked(exportWithRetry).mockResolvedValue({
+    vi.mocked(getSessionData).mockResolvedValue({
       info: { id: "ses_src" } as any,
       messages: [msg("m1", undefined, "user", "hello")],
     });
@@ -84,7 +84,7 @@ describe("injectCommand", () => {
     vi.mocked(resolveRef).mockResolvedValueOnce("ses_src");
     vi.mocked(readState).mockResolvedValue({ "/proj": { current: "cur" } });
     vi.mocked(readNames).mockResolvedValue({ "/proj": { cur: "ses_cur" } });
-    vi.mocked(exportWithRetry).mockResolvedValue({
+    vi.mocked(getSessionData).mockResolvedValue({
       info: { id: "ses_src" } as any,
       messages: [msg("m1", undefined, "user", "hello")],
     });

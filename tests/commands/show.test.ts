@@ -2,8 +2,8 @@ import { describe, it, expect, vi, beforeEach } from "vitest";
 import { buildMessageList, showCommand } from "../../src/commands/show.js";
 import type { ExportedMessage } from "../../src/types.js";
 
-vi.mock("../../src/lib/retry.js", () => ({
-  exportWithRetry: vi.fn(),
+vi.mock("../../src/lib/data-access.js", () => ({
+  getSessionData: vi.fn(),
 }));
 
 vi.mock("../../src/lib/ref.js", () => ({
@@ -15,7 +15,7 @@ vi.mock("../../src/lib/store.js", () => ({
   readNames: vi.fn(),
 }));
 
-import { exportWithRetry } from "../../src/lib/retry.js";
+import { getSessionData } from "../../src/lib/data-access.js";
 import { resolveRef } from "../../src/lib/ref.js";
 import { readState } from "../../src/lib/store.js";
 
@@ -53,7 +53,7 @@ describe("showCommand", () => {
   it("defaults to current session when ref is undefined", async () => {
     vi.mocked(readState).mockResolvedValue({ "/proj": { current: "my-sess" } });
     vi.mocked(resolveRef).mockResolvedValue("ses_abc");
-    vi.mocked(exportWithRetry).mockResolvedValue({
+    vi.mocked(getSessionData).mockResolvedValue({
       info: { id: "ses_abc" } as any,
       messages: [msg("msg_a", undefined, "user", "hi")],
     });

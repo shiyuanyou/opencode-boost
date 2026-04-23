@@ -5,8 +5,8 @@ vi.mock("../../src/lib/opencode.js", () => ({
   forkSession: vi.fn(),
 }));
 
-vi.mock("../../src/lib/retry.js", () => ({
-  exportWithRetry: vi.fn(),
+vi.mock("../../src/lib/data-access.js", () => ({
+  getSessionData: vi.fn(),
 }));
 
 vi.mock("../../src/lib/store.js", () => ({
@@ -23,7 +23,7 @@ vi.mock("../../src/lib/ref.js", () => ({
 }));
 
 import { getCurrentSession, forkSession } from "../../src/lib/opencode.js";
-import { exportWithRetry } from "../../src/lib/retry.js";
+import { getSessionData } from "../../src/lib/data-access.js";
 import { readState, readNames, readForks } from "../../src/lib/store.js";
 import { resolveRef } from "../../src/lib/ref.js";
 import { checkoutCommand } from "../../src/commands/checkout.js";
@@ -65,10 +65,10 @@ describe("checkoutCommand", () => {
   });
 
   describe("fork mode (checkout -b)", () => {
-    it("forks from parent session using exportWithRetry", async () => {
+    it("forks from parent session using getSessionData", async () => {
       vi.mocked(readNames).mockResolvedValue({ "/proj": {} });
       vi.mocked(resolveRef).mockResolvedValue("ses_parent");
-      vi.mocked(exportWithRetry).mockResolvedValue({
+      vi.mocked(getSessionData).mockResolvedValue({
         info: { id: "ses_parent" } as any,
         messages: [msg("m1", undefined, "user", "hello"), msg("m2", "m1", "assistant", "hi")],
       });
@@ -78,7 +78,7 @@ describe("checkoutCommand", () => {
 
       await checkoutCommand("parent-ref", "/proj", { b: "new-branch" });
 
-      expect(exportWithRetry).toHaveBeenCalledWith("ses_parent");
+      expect(getSessionData).toHaveBeenCalledWith("ses_parent");
       expect(forkSession).toHaveBeenCalledWith("ses_parent", "ocb-fork", undefined);
     });
 
@@ -93,7 +93,7 @@ describe("checkoutCommand", () => {
     it("forks from current session when parentRef is '.'", async () => {
       vi.mocked(readNames).mockResolvedValue({ "/proj": { "cur": "ses_cur" } });
       vi.mocked(readState).mockResolvedValue({ "/proj": { current: "cur" } });
-      vi.mocked(exportWithRetry).mockResolvedValue({
+      vi.mocked(getSessionData).mockResolvedValue({
         info: { id: "ses_cur" } as any,
         messages: [msg("m1", undefined, "user", "hello")],
       });
@@ -102,7 +102,7 @@ describe("checkoutCommand", () => {
 
       await checkoutCommand(".", "/proj", { b: "new-branch" });
 
-      expect(exportWithRetry).toHaveBeenCalledWith("ses_cur");
+      expect(getSessionData).toHaveBeenCalledWith("ses_cur");
     });
   });
 });
