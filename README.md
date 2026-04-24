@@ -42,7 +42,7 @@ inject   →  跨会话传递知识（类似 git cherry-pick）
 
 ```bash
 git clone https://github.com/shiyuanyou/opencode-boost.git
-cd opencode-boost && npm install && npm link
+cd opencode-boost && npm install && npm run build && npm link
 ```
 
 需要 [Node.js](https://nodejs.org/) >= 18 和 [opencode](https://opencode.ai) >= 1.14。
@@ -51,7 +51,7 @@ cd opencode-boost && npm install && npm link
 
 ```
 git clone https://github.com/shiyuanyou/opencode-boost.git /tmp/opencode-boost
-cd /tmp/opencode-boost && npm install && npm link
+cd /tmp/opencode-boost && npm install && npm run build && npm link
 ```
 
 ## 快速开始

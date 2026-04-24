@@ -42,7 +42,7 @@ Core principle: **Zero direct database access**. All operations go through the o
 
 ```bash
 git clone https://github.com/shiyuanyou/opencode-boost.git
-cd opencode-boost && npm install && npm link
+cd opencode-boost && npm install && npm run build && npm link
 ```
 
 Requires [Node.js](https://nodejs.org/) >= 18 and [opencode](https://opencode.ai) >= 1.14.
