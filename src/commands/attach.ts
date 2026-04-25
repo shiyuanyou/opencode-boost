@@ -44,7 +44,7 @@ export async function attachCommand(name: string, cwd: string, opts: { s?: strin
   }
 
   let sid: string;
-  let resolvedName = name;
+  let resolvedName = name || "";
 
   if (opts.s) {
     const found = sessions.find((s) => s.id === opts.s);
@@ -56,7 +56,7 @@ export async function attachCommand(name: string, cwd: string, opts: { s?: strin
     sid = dirSessions[0].id;
   }
 
-  if (/^ses_[a-zA-Z0-9]{5,}/.test(resolvedName)) {
+  if (!resolvedName || /^ses_[a-zA-Z0-9]{5,}/.test(resolvedName)) {
     const session = sessions.find((s) => s.id === sid);
     resolvedName = uniqueName(titleToName(session?.title ?? ""), new Set(Object.keys(names[cwd])));
   }
