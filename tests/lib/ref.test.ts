@@ -46,4 +46,17 @@ describe("resolveRef", () => {
       'No session found for ref "ses_def456" in /other',
     );
   });
+
+  it("resolves a short id prefix that matches exactly one session", async () => {
+    const sid = await resolveRef("ses_abc", "/proj");
+    expect(sid).toBe("ses_abc123");
+  });
+
+  it("throws when short id prefix matches multiple sessions", async () => {
+    vi.mocked(listSessions).mockResolvedValue([
+      { id: "ses_abc123", title: "A", updated: 1000, created: 900, projectId: "p1", directory: "/proj" },
+      { id: "ses_abc456", title: "B", updated: 1000, created: 900, projectId: "p1", directory: "/proj" },
+    ]);
+    await expect(resolveRef("ses_abc", "/proj")).rejects.toThrow(/Ambiguous/);
+  });
 });
