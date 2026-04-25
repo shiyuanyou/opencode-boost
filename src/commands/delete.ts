@@ -1,6 +1,7 @@
 import { resolveRef } from "../lib/ref.js";
 import { readNames, writeNames, readState, writeState } from "../lib/store.js";
 import { deleteSession } from "../lib/opencode.js";
+import { shortId } from "../lib/format.js";
 import readline from "readline/promises";
 
 export async function deleteCommand(ref: string, cwd: string, opts: { force?: boolean }): Promise<void> {
@@ -8,7 +9,7 @@ export async function deleteCommand(ref: string, cwd: string, opts: { force?: bo
 
   if (!opts.force) {
     const rl = readline.createInterface({ input: process.stdin, output: process.stdout });
-    const answer = await rl.question(`\u26A0 Delete session ${sid}? This cannot be undone. [y/N] `);
+    const answer = await rl.question(`\u26A0 Delete session ${shortId(sid)}? This cannot be undone. [y/N] `);
     rl.close();
     if (answer.toLowerCase() !== "y") {
       console.log("Aborted.");
@@ -34,5 +35,5 @@ export async function deleteCommand(ref: string, cwd: string, opts: { force?: bo
     }
   }
 
-  console.log(`\u2713 Deleted ${sid}`);
+  console.log(`\u2713 Deleted ${shortId(sid)}`);
 }

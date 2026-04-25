@@ -14,8 +14,8 @@ export async function resolveRef(ref: string, cwd: string): Promise<string> {
   const prefixMatches = sessions.filter((s) => s.id.startsWith(ref));
   if (prefixMatches.length === 1) return prefixMatches[0].id;
   if (prefixMatches.length > 1) {
-    const ids = prefixMatches.map((s) => s.id).join(", ");
-    throw new Error(`Ambiguous ref "${ref}" matches ${prefixMatches.length} sessions: ${ids}`);
+    const ids = prefixMatches.map((s) => s.id).join("\n    ");
+    throw new Error(`Ambiguous ref "${ref}" matches ${prefixMatches.length} sessions:\n    ${ids}`);
   }
 
   throw new Error(`No session found for ref "${ref}" in ${cwd}`);

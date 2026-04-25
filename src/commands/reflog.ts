@@ -1,5 +1,5 @@
 import { readReflog, readState } from "../lib/store.js";
-import { relativeTime } from "../lib/format.js";
+import { relativeTime, shortId } from "../lib/format.js";
 
 export async function reflogCommand(ref: string | undefined, cwd: string): Promise<void> {
   let name = ref;
@@ -28,8 +28,8 @@ export async function reflogCommand(ref: string | undefined, cwd: string): Promi
     const step = i + 1;
     const time = relativeTime(entry.timestamp);
     const opLabel = entry.operation === "original" ? "(original)" : entry.operation;
-    const fromLabel = entry.from ? `from ${entry.from.slice(0, 15)}` : "";
-    console.log(`  [${step}] ${entry.sessionId.slice(0, 15)}  ${opLabel}  ${time}  ${fromLabel}`);
+    const fromLabel = entry.from ? `from ${shortId(entry.from)}` : "";
+    console.log(`  [${step}] ${shortId(entry.sessionId)}  ${opLabel}  ${time}  ${fromLabel}`);
   }
 
   console.log(`\nRollback: ocb rollback ${name}`);
