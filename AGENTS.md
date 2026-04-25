@@ -69,14 +69,16 @@ src/
 - `listSessions(cwd)` 在源头过滤 `s.directory === cwd`，所有 command 和 ref 解析只操作当前目录的 session
 - Fork 机制：`opencode run --session <sid> --fork --format json <message>`，超时 180s
 - **所有 execa 调用必须加 `input: ""`**——opencode 在空 stdin pipe 上会阻塞等待输入
-- Session ref 解析顺序：先在当前目录的 names 中查别名，不匹配则当作原始 session ID
+- Session ref 解析顺序：先在当前目录的 names 中查别名，不匹配则尝试短 ID 前缀匹配（类似 git short hash），前缀冲突时报 ambiguous 错误并列出完整 ID
 
 ## 代码约定
 
 - ESM-only（`"type": "module"`），本地导入必须加 `.js` 后缀：`import { foo } from "./bar.js"`
+- ESM 中 require native addon 必须用 `createRequire(import.meta.url)`——直接 `require()` 在 ESM 中未定义
 - tsup 打包单一入口 `src/index.ts`，目标 Node 18
 - 测试直接从 `src/` 导入（vitest，无 path alias）
-- 无代码注释风格要求，但现有代码无注释
+- 所有用户可见输出统一用 `shortId()`（15 字符），不内联 `.slice(0,15)`
+- `attach` 不传 name 时自动从 session title 生成名称，不会创建空名称条目
 - 所有 command action 通过 `action()` 包装器统一错误处理（index.ts），不手写 try/catch
 - `getSessionData(sid)` 统一访问层：先试 db-reader（毫秒级），失败 fallback 到 `exportWithRetry`（CLI 子进程）
 - `exportWithRetry()` 处理活跃会话 export 截断的重试逻辑，作为 data-access 的 fallback
@@ -96,6 +98,6 @@ src/
 - **Phase 2 ✅** — 分叉（`checkout -b`）+ 会话树（`graph`）— 3/3 E2E
 - **Phase 3 ✅** — 压缩（compact, rebase, reflog, rollback, model）— 9/9 E2E（rebase 除外）
 - **Phase 4 ✅** — 跨会话复用（inject, pick）— 命令已实现，无 E2E
-- **Phase 5 ✅** — 绕过 export（直读 SQLite）— db-reader + data-access 统一访问层，103 单元测试 + 36 E2E 全通过
+- **Phase 5 ✅** — 绕过 export（直读 SQLite）— db-reader + data-access 统一访问层 + 短 ID 前缀匹配
 
-共 103 单元测试 + 36 E2E 测试，全部通过。
+共 105 单元测试 + 36 E2E 测试，全部通过。

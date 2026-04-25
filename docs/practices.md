@@ -13,9 +13,11 @@
 - ESM import 加 `.js` 后缀：`import { foo } from "./bar.js"`
 - 新命令模式：`src/commands/<cmd>.ts` → `src/index.ts` 注册 → `tests/commands/<cmd>.test.ts`
 - mock 边界：mock `opencode.ts` 和 `store.ts`（外部依赖），不 mock 纯函数
-- 活跃会话 export 用 `exportWithRetry()`，不裸调 `exportSession`
 - 所有需要读取会话数据的命令必须用 `getSessionData()`，不直接调 `exportWithRetry` 或 `exportSession`（统一访问层，先 db-reader fallback export）
 - native addon（如 better-sqlite3）必须在 tsup external 中声明，否则打包失败
+- ESM 中 require native addon 必须用 `createRequire(import.meta.url)`，直接 `require()` 未定义会静默返回 null
+- `shortId()` 是唯一截断 ID 的方式，不内联 `.slice(0,15)`——改长度时只改一处
+- attach 不传 name 时必须自动生成（从 title），不允许空字符串作为名称 key
 - `tsconfig.json` 必须有 `"types": ["node"]`
 - 版本号从 `package.json` 动态读取，不硬编码
 - 测试顺序：先写测试确认 fail → 写实现确认 pass
@@ -23,7 +25,6 @@
 - shell completion 依赖 `--names` 或 `--json` 极简输出
 - prompt 集成命令必须 fast（< 50ms）和 zero side-effect
 - `opencode -c` 实测 5-10s+，不得阻塞任何高频命令（list/show）的路径
-- 所有需要 export session 的命令必须用 `exportWithRetry`，不裸调 `exportSession`
 - 颜色输出检测 `NO_COLOR` 环境变量和 `--no-color` flag
 
 ## Anti-Patterns
@@ -39,3 +40,5 @@
 - 在 list/show 等高频命令路径上调用 `opencode -c`（实测 5-10s 阻塞）
 - 高频命令串行调用多个 opencode 子进程（应 Promise.all 并行）
 - 直接调 `exportSession` 或 `exportWithRetry`（应通过 `getSessionData()` 统一访问层）
+- 内联 `.slice(0,15)` 截断 ID（应用 `shortId()` 统一函数）
+- attach 允许空字符串作为名称（应自动从 title 生成）
