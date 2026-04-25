@@ -42,14 +42,17 @@ export function repairChain(
     const newMsgId = generateId("msg_ocb");
     const newPartId = generateId("prt_ocb");
 
-    const texts: string[] = [];
+    const previews: string[] = [];
     for (const entry of compactGroup) {
       for (const part of entry.message.parts) {
-        if (part.type === "text" && part.text) texts.push(part.text);
+        if (part.type === "text" && part.text) {
+          previews.push(part.text.slice(0, 10));
+          break;
+        }
       }
     }
 
-    const summaryText = `[OCB 摘要] ${texts.join("\n")}`;
+    const summaryText = `[OCB 摘要] ${previews.join(" / ")}`;
 
     const summaryMsg: ExportedMessage = {
       info: {

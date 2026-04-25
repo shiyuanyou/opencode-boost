@@ -36,7 +36,7 @@ fork     →  从任意会话分叉出新的探索方向（类似 git branch）
 inject   →  跨会话传递知识（类似 git cherry-pick）
 ```
 
-核心原则：**零直写数据库**。所有操作通过 opencode 官方 CLI 完成，opencode 升级不会破坏你的数据。
+核心原则：**零直写数据库**。读操作通过 `better-sqlite3` 直读 SQLite（毫秒级），写操作通过 opencode 官方 CLI 完成。架构详见 [`docs/architecture.md`](docs/architecture.md)。
 
 ## 安装
 
@@ -269,18 +269,12 @@ ocb 用这条管线在 **4 个 Phase** 中构建完成：
 
 ## 项目文档
 
-```
-docs/
-├── README_en.md                          # 英文文档
-├── dev-workflow.md                       # 开发测试流程（面向 agent）
-├── superpowers/
-│   ├── specs/                            # 设计文档
-│   │   └── 2026-04-20-ocb-new.md         # ocb 完整设计
-│   └── plans/                            # 已执行的计划（历史存档）
-│       ├── 2026-04-21-phase1-core-view-naming.md
-│       ├── 2026-04-21-phase2-fork-graph.md
-│       └── 2026-04-22-techdebt-review-fixes.md
-```
+- [`docs/architecture.md`](docs/architecture.md) — **项目架构**：模块职责、数据流、类型系统、命令全景
+- [`docs/ideas.md`](docs/ideas.md) — 待规划功能和全局 TODO
+- [`docs/dev-workflow.md`](docs/dev-workflow.md) — 开发测试流程（面向 agent）
+- [`docs/practices.md`](docs/practices.md) — 开发实践（best practices + anti-patterns）
+- [`docs/superpowers/specs/`](docs/superpowers/specs/) — 设计文档（历史参考）
+- [`docs/README_en.md`](docs/README_en.md) — 英文文档
 
 ## License
 

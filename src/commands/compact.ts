@@ -53,7 +53,7 @@ export async function compactCommand(
     const plan: RebasePlanEntry[] = messages.map((m) => ({
       seq: m.seq,
       action: (m.seq >= from && m.seq <= to ? "compact" : "keep") as RebaseAction,
-      message: m,
+      message: { ...m } as ExportedMessage,
     }));
 
     const repairedMessages = repairChain(exported.messages, plan);

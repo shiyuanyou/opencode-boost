@@ -116,7 +116,10 @@ export async function rebaseCommand(
       }
     }
 
-    const repairedMessages = repairChain(exported.messages, plan);
+    const repairedMessages = repairChain(
+      exported.messages,
+      plan.map((p) => ({ ...p, message: structuredClone(p.message) }))
+    );
     const rebuilt = rebuildExportJson(exported, repairedMessages);
 
     const tmpFile = path.join(os.tmpdir(), `ocb-rebase-${Date.now()}.json`);
