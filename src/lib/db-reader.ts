@@ -1,7 +1,10 @@
 import path from "path";
 import os from "os";
+import { createRequire } from "module";
 import type { Database } from "better-sqlite3";
 import type { ExportedSession, ExportedMessage, MessagePart } from "../types.js";
+
+const require = createRequire(import.meta.url);
 
 export function getDbPath(): string {
   const xdg = process.env.XDG_DATA_HOME;
